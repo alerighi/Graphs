@@ -1,3 +1,3 @@
 # Graphs
 
-A set of algorithm reguarding graphs in C#
+A set of algorithms reguarding graphs in C#
