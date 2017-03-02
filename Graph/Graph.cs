@@ -128,14 +128,17 @@ namespace Graph
         /// <returns>true if the other object is equal to this</returns>
         public override bool Equals(object obj)
         {
-            return obj is Edge other && (other.From == From && other.To == To);
+            if (!(obj is Edge))
+                return false;
+            Edge other = (Edge) obj;
+            return other.From == From && other.To == To;
         }
 
         /// <summary>
         /// Returns string rappresentation of the object
         /// </summary>
         /// <returns>string rappresentation of the object</returns>
-        public override string ToString() => From + (Bidirectional ? " <-> " : " -> ") + To + " : " + Weight;
+        public override string ToString() => From + (Bidirectional ? " <-> " : "  -> ") + To + " : " + Weight;
     }
 
     /// <summary>
@@ -159,6 +162,15 @@ namespace Graph
         public string Name { get; }
 
         /// <summary>
+        /// Constructs a new graph object with the given name
+        /// </summary>
+        /// <param name="name">name of the graph</param>
+        public Graph(string name)
+        {
+            Name = name;
+        }
+
+        /// <summary>
         /// Calculates total grade (number of edges) of the graph 
         /// </summary>
         /// <returns>grade of the graph</returns>
@@ -173,12 +185,15 @@ namespace Graph
         }
 
         /// <summary>
-        /// Constructs a new graph object with the given name
+        /// Checks if the graph is oriented or not
         /// </summary>
-        /// <param name="name">name of the graph</param>
-        public Graph(string name)
+        /// <returns>true if the graph is oriented</returns>
+        public bool IsOriented()
         {
-            Name = name;
+            foreach (var edge in Edges)
+                if (!edge.Bidirectional)
+                    return true;
+            return false;
         }
 
         /// <summary>
@@ -223,6 +238,7 @@ namespace Graph
         public override string ToString()
         {
             string result = "Graph: " + Name + "\n";
+            result += "the graph is " + (IsOriented() ? "" : "not ") + "oriented\n";
             result += "number of vertices = " + Vertices.Count + "\n";
             result += "number of edges = " + Grade() + "\n";
             result += "Vertices: ";
