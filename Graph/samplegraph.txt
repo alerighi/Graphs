@@ -1,0 +1,12 @@
+﻿; example graph file
+; from  -> to : weight for directional edges
+; from <-> to : weight for non directional edges
+A <-> B : 7
+A <-> E : 8
+A <-> D : 3
+B <-> C : 6
+C <-> E : 1
+C <-> G : 3
+D <-> E : 4
+D <-> F : 5
+F <-> G : 2

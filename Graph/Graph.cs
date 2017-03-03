@@ -1,6 +1,8 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 
@@ -200,7 +202,7 @@ namespace Graph
         /// Adds the a vertex to the graph
         /// </summary>
         /// <param name="vertex">the vertex to add</param>
-        public void AddNode(Vertex vertex)
+        public void AddVertex(Vertex vertex)
         {
             Vertices.Add(vertex.Name, vertex);
         }
@@ -221,6 +223,21 @@ namespace Graph
             from.AddEdge(to, weight);
             if (bidirectional)
                 to.AddEdge(from, weight);
+        }
+
+        /// <summary>
+        /// If the vertex is already in the graph, it returns it.
+        /// If not, create a new vertex, add it to the graph and returns it
+        /// </summary>
+        /// <param name="name">the name of the vertex</param>
+        /// <returns>the vertex</returns>
+        public Vertex GetOrCreate(string name)
+        {
+            if (Vertices.ContainsKey(name))
+                return Vertices[name];
+            var vertex = new Vertex(name);
+            Vertices.Add(name, vertex);
+            return vertex;
         }
 
         /// <summary>
@@ -249,6 +266,55 @@ namespace Graph
                 result += "    " + edge + "\n";
             result += "}";
             return result;
+        }
+
+        /// <summary>
+        /// Imports a graph from a file
+        /// </summary>
+        /// <param name="fileName">the filename</param>
+        /// <returns>the graph loaded from file</returns>
+        /// <exception cref="FileNotFoundException">the file cannot be found</exception>
+        /// <exception cref="FormatException">the format of the graph file is not correct</exception>
+        public static Graph LoadGraphFromFile(string fileName)
+        {
+
+            var fileReader = new StreamReader(fileName);
+
+            Graph graph = new Graph(fileName.Split('\\').Last());
+
+            string line;
+            while ((line = fileReader.ReadLine()) != null)
+            {
+                line = line.Split(';')[0]; // remove comments
+
+                if (line.Length < 1) continue;
+
+                var p = line.Split(new char[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+
+                if (p.Length < 2)
+                    throw new FormatException();
+
+                int weight;
+                if (!Int32.TryParse(p[1], out weight))
+                    throw new FormatException();
+
+                var s = p[0].Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                if (s.Length < 3)
+                    throw new FormatException();
+
+                var a = graph.GetOrCreate(s[0]);
+                var b = graph.GetOrCreate(s[2]);
+
+                bool bidirectional;
+                if (s[1] == "<->") bidirectional = true;
+                else if (s[1] == "->") bidirectional = false;
+                else throw new FormatException();
+
+                graph.AddEdge(a, b, weight, bidirectional: bidirectional);
+
+            }
+
+            return graph;
         }
 
         /// <summary>
