@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Graph
 {
 
-    // type for dijstra algorithm result
+    // type for Dijkstra algorithm result
     using DijkstraResult = Tuple<List<Vertex>, int>;
 
     /// <summary>
@@ -20,6 +21,7 @@ namespace Graph
         /// <param name="b">destination vertex</param>
         /// <returns>A tuple containing a list of the nodes of the minimum path and the minimum cost</returns>
         /// <exception cref="NoSuchPathException">No path from a to b found</exception>
+        [SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
         public static DijkstraResult Dijkstra(Graph graph, Vertex a, Vertex b)
         {
             var distance = new Dictionary<Vertex, int>(); // distance from the origin
@@ -37,6 +39,7 @@ namespace Graph
             while (work.Count > 0) // while there are elements b process
             {
                 // find the element in Q with the smallest distance a origin
+                //work.Sort((x, y) => distance[x] - distance[y]); // sort the queue
                 var smallest = work[0];
                 foreach (var node in work)
                     if (distance[node] < distance[smallest])

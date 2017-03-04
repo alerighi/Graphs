@@ -1,33 +1,41 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-
 
 namespace Graph
 {
     /// <summary>
     /// A class that represents a vertex in a graph
     /// </summary>
-    class Vertex
+    public class Vertex
     {
         /// <summary>
         /// Edge dictionary, every Vertex that the edge connects to has associated its weight
         /// </summary>
-        private readonly Dictionary<Vertex, int> edges = new Dictionary<Vertex, int>();
-      
+        public Dictionary<Vertex, int> Edges { get; } = new Dictionary<Vertex, int>();
+
         /// <summary>
         /// Name of the vertex
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Returns the exit grade of the node
+        /// Returns the exit grade of the vertex
         /// </summary>
-        /// <returns>the exit grade of the node</returns>
-        public int ExitGrade => edges.Count;
+        public int ExitGrade => Edges.Count;
+
+        /// <summary>
+        /// Enter grade of the vertex
+        /// </summary>
+        public int EnterGrade { get; private set; }
+
+        /// <summary>
+        /// Totale grade of the vertex
+        /// </summary>
+        public int Grade => ExitGrade + EnterGrade;
 
         /// <summary>
         /// Constructor of a vertex
@@ -45,7 +53,8 @@ namespace Graph
         /// <param name="weight">weight of the edge</param>
         public void AddEdge(Vertex to, int weight)
         {
-            edges.Add(to, weight);
+            Edges.Add(to, weight);
+            to.EnterGrade += 1;
         }
 
         /// <summary>
@@ -54,14 +63,14 @@ namespace Graph
         /// <param name="to">destination vertex to remove</param>
         public void RemoveEdge(Vertex to)
         {
-            edges.Remove(to);
+            Edges.Remove(to);
         }
 
         /// <summary>
         /// Iterates on node neighbors
         /// </summary>
         /// <returns>Neighbors iterator</returns>
-        public IEnumerator GetEnumerator() => edges.Keys.GetEnumerator();
+        public IEnumerator GetEnumerator() => Edges.Keys.GetEnumerator();
 
         /// <summary>
         /// Returns string rappresentation of the vertex, in practice its name
@@ -74,13 +83,32 @@ namespace Graph
         /// </summary>
         /// <param name="to">vertex to go to</param>
         /// <returns>the weight of the edge between this vertex and the one specified</returns>
-        public int GetWeightTo(Vertex to) => edges[to];
+        public int GetWeightTo(Vertex to) => Edges[to];
+
+        /// <summary>
+        /// Get the hash code of the vertex
+        /// </summary>
+        /// <returns>the hash code of the vertex</returns>
+        public override int GetHashCode() => Edges.GetHashCode() ^ Name.GetHashCode();
+
+        /// <summary>
+        /// Check if 2 vertex are equal
+        /// </summary>
+        /// <param name="obj">second vertex to compare</param>
+        /// <returns>true if equals</returns>
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Vertex))
+                return false;
+            Vertex other = (Vertex) obj;
+            return Edges.Equals(other.Edges) && other.Name == Name;
+        }
     }
 
     /// <summary>
     /// A class that rappresents an edge in a graph
     /// </summary>
-    class Edge
+    public class Edge
     {
         /// <summary>
         /// Vertex where the edge starts
@@ -92,10 +120,20 @@ namespace Graph
         /// </summary>
         public Vertex To { get; }
 
+        private int weight;
+
         /// <summary>
         /// Weight of the edge
         /// </summary>
-        public int Weight { get; }
+        public int Weight {
+            get { return weight ; }
+            set
+            {
+                weight = value;
+                if (From.Edges.ContainsKey(To)) From.Edges[To] = value;
+                if (To.Edges.ContainsKey(From)) To.Edges[From] = value;
+            }
+        }
 
         /// <summary>
         /// true if the edge is bidirectional
@@ -113,8 +151,8 @@ namespace Graph
         {
             From = from;
             To = to;
-            Weight = weight;
             Bidirectional = bidirectional;
+            Weight = weight;
         }
 
         /// <summary>
@@ -146,7 +184,7 @@ namespace Graph
     /// <summary>
     /// A class that rappresents a graph
     /// </summary>
-    class Graph
+    public class Graph
     {
         /// <summary>
         /// Vertices of the graph
@@ -161,7 +199,7 @@ namespace Graph
         /// <summary>
         /// Name of the graph
         /// </summary>
-        public string Name { get; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Constructs a new graph object with the given name
@@ -219,10 +257,31 @@ namespace Graph
         {
             if (!Vertices.Values.Contains(from) || !Vertices.Values.Contains(to))
                 throw new VertexNotInGraphException();
-            Edges.Add(new Edge(from, to, weight, bidirectional));
+            Edge e = new Edge(from, to, weight, bidirectional);
+            Edges.Add(e);
             from.AddEdge(to, weight);
             if (bidirectional)
                 to.AddEdge(from, weight);
+        }
+
+        /// <summary>
+        /// Adds an edge to the graph
+        /// </summary>
+        /// <param name="edge">The edge to add</param>
+        public void AddEdge(Edge edge)
+        {
+            AddEdge(edge.From, edge.To, edge.Weight, edge.Bidirectional);
+        }
+
+        public void RemoveEdge(Edge edge)
+        {
+            if (Edges.Contains(edge))
+            {
+                Edges.Remove(edge);
+                edge.From.RemoveEdge(edge.To);
+                if (edge.Bidirectional)
+                    edge.To.RemoveEdge(edge.From);
+            }
         }
 
         /// <summary>
@@ -254,18 +313,59 @@ namespace Graph
         /// <returns>string rappresentation of the graph</returns>
         public override string ToString()
         {
-            string result = "Graph: " + Name + "\n";
-            result += "the graph is " + (IsOriented() ? "" : "not ") + "oriented\n";
-            result += "number of vertices = " + Vertices.Count + "\n";
-            result += "number of edges = " + Grade() + "\n";
-            result += "Vertices: ";
+            string result = "; Graph: " + Name + "\n";
+            result += "; the graph is " + (IsOriented() ? "" : "not ") + "oriented\n";
+            result += "; number of vertices = " + Vertices.Count + "\n";
+            result += "; number of edges = " + Grade() + "\n";
+            result += "; Vertices: ";
             foreach (var node in Vertices.Values)
                 result += node + ", ";
-            result += "\b\b;\nEdges: {\n";
+            result += "\b\b;\n; Edges: \n";
             foreach (var edge in Edges)
                 result += "    " + edge + "\n";
-            result += "}";
             return result;
+        }
+
+        /// <summary>
+        /// Remove a vertex from the graph, and the associated edges
+        /// </summary>
+        /// <param name="v">The vertex to remove</param>
+        [SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
+        public void DeleteVertex(Vertex v)
+        {
+           if (!Vertices.ContainsKey(v.Name))
+              return;
+           
+           List<Edge> toRemove = new List<Edge>();
+           foreach (var edge in Edges)
+           {
+                if (edge.From == v)
+                {
+                    toRemove.Add(edge);
+                }
+                else if (edge.To == v)
+                {
+                    edge.From.RemoveEdge(v);
+                    toRemove.Add(edge);
+                }
+            }
+            foreach (var edge in toRemove)
+            {
+                Edges.Remove(edge);
+            }
+            Vertices.Remove(v.Name);
+        }
+
+        /// <summary>
+        /// Resets all the weights with random values in range 1..20
+        /// </summary>
+        public void RandomizeWeights()
+        {
+            Random rand = new Random();
+            foreach (var edge in Edges)
+            {
+                edge.Weight = rand.Next(1, 21);
+            }
         }
 
         /// <summary>
@@ -277,44 +377,46 @@ namespace Graph
         /// <exception cref="FormatException">the format of the graph file is not correct</exception>
         public static Graph LoadGraphFromFile(string fileName)
         {
-
-            var fileReader = new StreamReader(fileName);
-
-            Graph graph = new Graph(fileName.Split('\\').Last());
-
-            string line;
-            while ((line = fileReader.ReadLine()) != null)
+            using (var fileReader = new StreamReader(fileName))
             {
-                line = line.Split(';')[0]; // remove comments
+                var line = fileReader.ReadLine();
+                if (line == null)
+                    return null;
+                var name = line.Split(':')[1].Trim();
+                var graph = new Graph(name);
 
-                if (line.Length < 1) continue;
+                while ((line = fileReader.ReadLine()) != null)
+                {
+                    line = line.Split(';')[0]; // remove comments
 
-                var p = line.Split(new char[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+                    if (line.Length < 1) continue;
 
-                if (p.Length < 2)
-                    throw new FormatException();
+                    var p = line.Split(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
 
-                int weight;
-                if (!Int32.TryParse(p[1], out weight))
-                    throw new FormatException();
+                    if (p.Length < 2)
+                        throw new FormatException();
 
-                var s = p[0].Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
-                if (s.Length < 3)
-                    throw new FormatException();
+                    int weight;
+                    if (!Int32.TryParse(p[1], out weight))
+                        throw new FormatException();
 
-                var a = graph.GetOrCreate(s[0]);
-                var b = graph.GetOrCreate(s[2]);
+                    var s = p[0].Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                    if (s.Length < 3)
+                        throw new FormatException();
 
-                bool bidirectional;
-                if (s[1] == "<->") bidirectional = true;
-                else if (s[1] == "->") bidirectional = false;
-                else throw new FormatException();
+                    var a = graph.GetOrCreate(s[0]);
+                    var b = graph.GetOrCreate(s[2]);
 
-                graph.AddEdge(a, b, weight, bidirectional: bidirectional);
+                    bool bidirectional;
+                    if (s[1] == "<->") bidirectional = true;
+                    else if (s[1] == "->") bidirectional = false;
+                    else throw new FormatException();
 
+                    graph.AddEdge(a, b, weight, bidirectional: bidirectional);
+
+                }
+                return graph;
             }
-
-            return graph;
         }
 
         /// <summary>

@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D7923DFA-41D3-4E85-A2A4-0A60E95B15F0}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>Graph</RootNamespace>
     <AssemblyName>Graph</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
@@ -46,9 +46,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Graph.MainWindow</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -57,9 +62,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AboutBox1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutBox1.Designer.cs">
+      <DependentUpon>AboutBox1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Algorithm.cs" />
+    <Compile Include="EdgeWeightDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EdgeWeightDialog.Designer.cs">
+      <DependentUpon>EdgeWeightDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GraphNameDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GraphNameDialog.Designer.cs">
+      <DependentUpon>GraphNameDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainWindow.Designer.cs">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="Graph.cs" />
-    <Compile Include="MainClass.cs" />
+    <Compile Include="NewVertexDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NewVertexDialog.Designer.cs">
+      <DependentUpon>NewVertexDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +113,23 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AboutBox1.resx">
+      <DependentUpon>AboutBox1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EdgeWeightDialog.resx">
+      <DependentUpon>EdgeWeightDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GraphNameDialog.resx">
+      <DependentUpon>GraphNameDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainWindow.resx">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewVertexDialog.resx">
+      <DependentUpon>NewVertexDialog.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
