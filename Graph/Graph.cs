@@ -202,12 +202,10 @@ namespace Graph
         public string Name { get; set; }
 
         /// <summary>
-        /// Constructs a new graph object with the given name
+        /// Constructs a new graph object
         /// </summary>
-        /// <param name="name">name of the graph</param>
-        public Graph(string name)
+        public Graph()
         {
-            Name = name;
         }
 
         /// <summary>
@@ -273,7 +271,7 @@ namespace Graph
             AddEdge(edge.From, edge.To, edge.Weight, edge.Bidirectional);
         }
 
-        public void RemoveEdge(Edge edge)
+        public virtual void RemoveEdge(Edge edge)
         {
             if (Edges.Contains(edge))
             {
@@ -300,22 +298,22 @@ namespace Graph
         }
 
         /// <summary>
-        /// Iterators that iterates on the vertices of the graph
+        /// Iterators that iterates on the VerticesPosition of the graph
         /// </summary>
         /// <returns></returns>
         public IEnumerator GetEnumerator() => Vertices.Values.GetEnumerator();
 
         /// <summary>
         /// Returns a string rappresentation of the graph.
-        /// General informations such name, number of vertices, grade are shown, 
-        /// with the list of vertices and edges
+        /// General informations such name, number of VerticesPosition, grade are shown, 
+        /// with the list of VerticesPosition and edges
         /// </summary>
         /// <returns>string rappresentation of the graph</returns>
         public override string ToString()
         {
             string result = "; Graph: " + Name + "\n";
             result += "; the graph is " + (IsOriented() ? "" : "not ") + "oriented\n";
-            result += "; number of vertices = " + Vertices.Count + "\n";
+            result += "; number of VerticesPosition = " + Vertices.Count + "\n";
             result += "; number of edges = " + Grade() + "\n";
             result += "; Vertices: ";
             foreach (var node in Vertices.Values)
@@ -375,16 +373,16 @@ namespace Graph
         /// <returns>the graph loaded from file</returns>
         /// <exception cref="FileNotFoundException">the file cannot be found</exception>
         /// <exception cref="FormatException">the format of the graph file is not correct</exception>
-        public static Graph LoadGraphFromFile(string fileName)
+        public Graph(string fileName)
         {
+
             using (var fileReader = new StreamReader(fileName))
             {
                 var line = fileReader.ReadLine();
                 if (line == null)
-                    return null;
+                    return;
                 var name = line.Split(':')[1].Trim();
-                var graph = new Graph(name);
-
+                Name = name;
                 while ((line = fileReader.ReadLine()) != null)
                 {
                     line = line.Split(';')[0]; // remove comments
@@ -404,18 +402,17 @@ namespace Graph
                     if (s.Length < 3)
                         throw new FormatException();
 
-                    var a = graph.GetOrCreate(s[0]);
-                    var b = graph.GetOrCreate(s[2]);
+                    var a = GetOrCreate(s[0]);
+                    var b = GetOrCreate(s[2]);
 
                     bool bidirectional;
                     if (s[1] == "<->") bidirectional = true;
                     else if (s[1] == "->") bidirectional = false;
                     else throw new FormatException();
 
-                    graph.AddEdge(a, b, weight, bidirectional: bidirectional);
+                    AddEdge(a, b, weight, bidirectional: bidirectional);
 
                 }
-                return graph;
             }
         }
 

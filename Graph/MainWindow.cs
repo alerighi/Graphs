@@ -15,10 +15,11 @@ namespace Graph
     public partial class MainWindow : Form
     {
 
-        private Dictionary<Vertex, VertexComponent> vertices;
+        
         private readonly Image image;
-        private Graph graph;
-        private const int Radius = 20;
+        private GraphRappresentation graph;
+
+
         private VertexComponent[] selected = new VertexComponent[2];
         private readonly Size size = new Size(1500, 800);
         private bool changed;
@@ -26,8 +27,8 @@ namespace Graph
         private bool selectingEdge;
         private bool doDijkstra;
         private const string DefaultStatus = "Ready";
-        private string fileName;
-        private Dictionary<Edge, bool> colorEdges;
+        private string fileName = "";
+
 
         private const string ProgramTitle = "Graphs";
 
@@ -66,7 +67,7 @@ namespace Graph
 
         private void PictureBox1OnMouseDoubleClick(object sender, MouseEventArgs mouseEventArgs)
         {
-            var edge = EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
+            var edge = graph.EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
             if (edge == null) return;
             using (var dialog = new EdgeWeightDialog(edge))
                 dialog.ShowDialog(this);
@@ -89,42 +90,9 @@ namespace Graph
             }
         }
 
-        private VertexComponent VertexOnMousePosition(int x, int y)
-        {
-            foreach (var v in vertices.Values)
-            {
-                if (x > v.X - Radius && x < v.X + Radius && v.Y - Radius < y && y < v.Y + Radius)
-                    return v;
-            }
-            return null;
-        }
-
-        private static bool NearTo(double x1, double y1, double x2, double y2, double x, double y)
-        {
-
-            var r = Math.Abs((y2 - y1) * (x - x1) - (x2 - x1) * (y - y1));
-            var d = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1);
-            var di = (x - x1) * (x - x1) + (y - y1) * (y - y1);
-            return r < 1000 && di < d;
-        }
-
-        private Edge EdgeOnPosition(int x, int y)
-        {
-            foreach (var edge in graph.Edges)
-            {
-                var x1 = vertices[edge.From].X;
-                var x2 = vertices[edge.To].X;
-                var y1 = vertices[edge.From].Y;
-                var y2 = vertices[edge.To].Y;
-                if (NearTo(x1, y1, x2, y2, x, y) || NearTo(x2, y2, x1, y1, x, y))
-                    return edge;
-            }
-            return null;
-        }
-
         private void RemoveEdge(int x, int y)
         {
-            var edge = EdgeOnPosition(x, y);
+            var edge = graph.EdgeOnPosition(x, y);
             if (edge != null)
             {
                 graph.RemoveEdge(edge);
@@ -141,13 +109,13 @@ namespace Graph
                 RemoveEdge(args.X, args.Y);
                 return;
             }
-            dragging = VertexOnMousePosition(args.X, args.Y);
+            dragging = graph.VertexOnMousePosition(args.X, args.Y);
             if (deleting && dragging != null)
             {
                 if (MessageBox.Show("Really delete vertex ?", "Delete Vertex", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     graph.DeleteVertex(dragging.V);
-                    vertices.Remove(dragging.V);
+                    graph.VerticesPosition.Remove(dragging.V);
                     UpdateGraphics();
                 }
                 status.Text = DefaultStatus;
@@ -184,29 +152,6 @@ namespace Graph
             tmpY = args.Y - dragging.Y;
         }
 
-
-        public void SetGraph(Graph g)
-        {
-            graph = g;
-            Text = g.Name;
-            colorEdges = new Dictionary<Edge, bool>();
-            vertices = new Dictionary<Vertex, VertexComponent>();
-            int x = 40;
-            int y = 40;
-            foreach (var v in g.Vertices.Values)
-            {
-                vertices.Add(v, new VertexComponent(v, x, y));
-                x += 100;
-                if (x / 300 > 0)
-                {
-                    y += 100;
-                    x = 80;
-                }
-            }
-            foreach (var edge in graph.Edges)
-                colorEdges.Add(edge, false);
-        }
-
         private void addVertex_Click(object sender, EventArgs e)
         {
             using (var dialog = new NewVertexDialog())
@@ -219,12 +164,10 @@ namespace Graph
                     return;
                 }
 
-                Vertex v = new Vertex(dialog.Name);
+                VertexComponent v = new VertexComponent(dialog.Name, 300, 300);
                 dialog.Dispose();
                 graph.AddVertex(v);
-                VertexComponent v2 = new VertexComponent(v, 300, 300);
-                vertices.Add(v, v2);
-                dragging = v2;
+                dragging = v;
                 UpdateGraphics();
             }
         }
@@ -251,12 +194,12 @@ namespace Graph
                 Vertex previous = null;
                 foreach (var v in result.Item1)
                 {
-                    vertices[v].Color = true;
+                    graph.VerticesPosition[v].Color = true;
                     if (previous != null)
                     {
                         foreach (var edge in graph.Edges)
                             if (edge.From == previous && edge.To == v || edge.To == previous && edge.From == v)
-                                colorEdges[edge] = true;
+                                graph.ColorEdges[edge] = true;
                     }
                     previous = v;
                 }
@@ -290,7 +233,7 @@ namespace Graph
                     if (dialog.ShowDialog(this) != DialogResult.OK)
                         return;
                 graph.AddEdge(e);
-                colorEdges.Add(e, false);
+                graph.ColorEdges.Add(e, false);
                 selected = new VertexComponent[2];
                 selecting = false;
                 status.Text = DefaultStatus;
@@ -302,79 +245,27 @@ namespace Graph
 
         public void UpdateGraphics()
         {
-            Font font = new Font("Arial", 14);
             Graphics g = Graphics.FromImage(image);
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.FillRectangle(Brushes.White, new Rectangle(0, 0, size.Width, size.Height));
-            foreach (var e in graph.Edges)
-            {
-                bool color = colorEdges[e];
-                g.DrawLine(color ? Pens.Red : Pens.Black, vertices[e.From].X, vertices[e.From].Y, vertices[e.To].X, vertices[e.To].Y);
-                int middleX = (vertices[e.From].X + vertices[e.To].X) / 2;
-                int middleY = (vertices[e.From].Y + vertices[e.To].Y) / 2;
-                g.DrawString(e.Weight.ToString(), font, Brushes.Black, middleX, middleY-20);
-
-
-            }
-            foreach (var v in vertices.Values)
-                v.Draw(g);
-
+            graph.UpdateGraphics(g);
             changed = true;
             pictureBox1.Refresh();
-        }
-
-        public override string ToString()
-        {
-            string res = graph.ToString();
-            res += "; EndGraph\n";
-            foreach (var vertex in vertices.Values)
-            {
-                res += "; " + vertex + "\n";
-            }
-            return res;
-        }
-
-        private void LoadFile(string filename)
-        {
-            fileName = filename;
-            graph = Graph.LoadGraphFromFile(filename);
-            SetGraph(graph);
-            vertices = new Dictionary<Vertex, VertexComponent>();
-            using (var fileReader = new StreamReader(filename))
-            {
-                string line;
-                do
-                {
-                    line = fileReader.ReadLine();
-                }
-                while (line != null && !line.Contains("EndGraph"));
-                while ((line = fileReader.ReadLine()) != null)
-                {
-                    if (line.Length < 4) continue;
-                    line = line.Split(';')[1];
-                    var parts = line.Split(',');
-                    var node = parts[0].Trim();
-                    var posX = Int32.Parse(parts[1].Trim());
-                    var posY = Int32.Parse(parts[2].Trim());
-                    var vertex = graph.Vertices[node];
-                    vertices.Add(vertex, new VertexComponent(vertex, posX, posY));
-                }
-            }
-            UpdateGraphics();
-            changed = false;
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
            if (fileName.Length < 2)
-                saveWithNameToolStripMenuItem_Click(sender, e);
-           SaveFile(fileName);
+                saveWithNameToolStripMenuItem_Click(null, null);
+           else
+                SaveFile(fileName);
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
-                LoadFile(openFileDialog1.FileName);
+            {
+                graph = new GraphRappresentation(openFileDialog1.FileName);
+                UpdateGraphics();
+            }
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -384,7 +275,9 @@ namespace Graph
 
         private void NewGraph(string name)
         {
-            SetGraph(new Graph(name));
+            graph = new GraphRappresentation();
+            graph.Name = name;
+            Text = name;
             UpdateGraphics();
         }
 
@@ -401,14 +294,7 @@ namespace Graph
 
         private void ResetColor()
         {
-            foreach (var vertex in vertices.Values)
-            {
-                vertex.Color = false;
-            }
-            foreach (var edge in colorEdges.Keys.ToList())
-            {
-                colorEdges[edge] = false;
-            }
+            graph.ResetColors();
             UpdateGraphics();
         }
 
@@ -518,43 +404,13 @@ namespace Graph
         private void SaveFile(string filename)
         {
             StreamWriter writer = new StreamWriter(filename);
-            writer.WriteLine(ToString());
+            writer.WriteLine(graph.ToString());
             writer.Close();
             fileName = filename;
         }
     }
 
 
-    public class VertexComponent
-    {
-
-        public bool Color { get; set; }
-
-        public VertexComponent(Vertex v, int x, int y)
-        {
-            V = v;
-            X = x;
-            Y = y;
-        }
-
-        public int X { get; set; }
-        public int Y { get; set; }
-
-        public Vertex V { get; set; }
-
-        public void Draw(Graphics g)
-        {
-            Font font = new Font("Arial", 14);
-            Rectangle r = new Rectangle(X-20, Y-29, 40, 40);
-            g.FillEllipse(Brushes.White, r);
-            g.DrawEllipse(Color ? Pens.Red : Pens.Black, r);
-            g.DrawString(V.Name, font, Brushes.Black, X -15 , Y - 20);
-        }
-
-        public override string ToString()
-        {
-            return V + "," + X + "," + Y;
-        }
-    }
+   
 
 }
