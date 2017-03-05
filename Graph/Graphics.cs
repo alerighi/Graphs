@@ -190,6 +190,8 @@ namespace Graph
                 g.FillEllipse(Brushes.White, r);
                 pen.Color = Color ? System.Drawing.Color.Red : System.Drawing.Color.Black;
                 g.DrawEllipse(pen, r);
+                r.X -= 10;
+                r.Width += 20;
                 g.DrawString(V.Name, font, Brushes.Black, r, Format);
             }
         }

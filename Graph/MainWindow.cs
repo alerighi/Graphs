@@ -260,6 +260,7 @@ namespace Graph
                 graph = new GraphRappresentation(openFileDialog1.FileName);
                 fileName = openFileDialog1.FileName;
                 UpdateGraphics();
+                changed = false;
             }
         }
 
