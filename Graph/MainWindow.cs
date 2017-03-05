@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -14,22 +11,19 @@ namespace Graph
 
     public partial class MainWindow : Form
     {
-
-        
-        private readonly Image image;
+        private readonly Graphics graphics;
         private GraphRappresentation graph;
 
-
         private VertexComponent[] selected = new VertexComponent[2];
-        private readonly Size size = new Size(1500, 800);
+
         private bool changed;
         private bool deleting;
         private bool selectingEdge;
         private bool doDijkstra;
-        private const string DefaultStatus = "Ready";
+        
         private string fileName = "";
 
-
+        private const string DefaultStatus = "Ready";
         private const string ProgramTitle = "Graphs";
 
         public override string Text {
@@ -59,8 +53,9 @@ namespace Graph
             pictureBox1.MouseMove += PictureBox1OnMouseMove;
             pictureBox1.MouseUp += PictureBox1OnMouseUp;
             pictureBox1.MouseDoubleClick += PictureBox1OnMouseDoubleClick;
-            image = new Bitmap(size.Width, size.Height, PixelFormat.Format24bppRgb);
+            Image image = new Bitmap(GraphRappresentation.Size.Width, GraphRappresentation.Size.Height, PixelFormat.Format24bppRgb);
             pictureBox1.Image = image;
+            graphics = Graphics.FromImage(image);
             NewGraph("NewGraph");
             statusStrip1.Text = DefaultStatus;
         }
@@ -82,7 +77,7 @@ namespace Graph
         private void PictureBox1OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
             if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0 
-                && mouseEventArgs.X < size.Width && mouseEventArgs.Y < size.Height)
+                && mouseEventArgs.X < GraphRappresentation.Size.Width && mouseEventArgs.Y < GraphRappresentation.Size.Height)
             {
                 dragging.X = mouseEventArgs.X - tmpX;
                 dragging.Y = mouseEventArgs.Y - tmpY;
@@ -245,8 +240,7 @@ namespace Graph
 
         public void UpdateGraphics()
         {
-            Graphics g = Graphics.FromImage(image);
-            graph.UpdateGraphics(g);
+            graph.UpdateGraphics(graphics);
             changed = true;
             pictureBox1.Refresh();
         }
@@ -264,6 +258,7 @@ namespace Graph
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
             {
                 graph = new GraphRappresentation(openFileDialog1.FileName);
+                fileName = openFileDialog1.FileName;
                 UpdateGraphics();
             }
         }
@@ -386,7 +381,7 @@ namespace Graph
             if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
                 SaveFile(saveFileDialog1.FileName);
         }
-
+        
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
 
@@ -407,6 +402,7 @@ namespace Graph
             writer.WriteLine(graph.ToString());
             writer.Close();
             fileName = filename;
+            changed = false;
         }
     }
 

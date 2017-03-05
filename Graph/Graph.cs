@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Graph
 {
@@ -64,6 +66,7 @@ namespace Graph
         public void RemoveEdge(Vertex to)
         {
             Edges.Remove(to);
+            to.EnterGrade -= 1;
         }
 
         /// <summary>
@@ -121,6 +124,7 @@ namespace Graph
         public Vertex To { get; }
 
         private int weight;
+        private bool bidirectional;
 
         /// <summary>
         /// Weight of the edge
@@ -138,7 +142,20 @@ namespace Graph
         /// <summary>
         /// true if the edge is bidirectional
         /// </summary>
-        public bool Bidirectional { get; }
+        public bool Bidirectional {
+            get { return bidirectional; }
+            set
+            {
+                if (bidirectional != value)
+                {
+                    bidirectional = value;
+                    if (bidirectional)
+                        To.AddEdge(From, Weight);
+                    else
+                        To.RemoveEdge(From);
+                }
+            }
+        }
 
         /// <summary>
         /// Constructor of an edge
@@ -151,8 +168,9 @@ namespace Graph
         {
             From = from;
             To = to;
-            Bidirectional = bidirectional;
             Weight = weight;
+            from.AddEdge(to, weight);
+            Bidirectional = bidirectional;
         }
 
         /// <summary>
@@ -257,9 +275,6 @@ namespace Graph
                 throw new VertexNotInGraphException();
             Edge e = new Edge(from, to, weight, bidirectional);
             Edges.Add(e);
-            from.AddEdge(to, weight);
-            if (bidirectional)
-                to.AddEdge(from, weight);
         }
 
         /// <summary>
@@ -268,9 +283,13 @@ namespace Graph
         /// <param name="edge">The edge to add</param>
         public void AddEdge(Edge edge)
         {
-            AddEdge(edge.From, edge.To, edge.Weight, edge.Bidirectional);
+            Edges.Add(edge);
         }
 
+        /// <summary>
+        /// Removes an edge from the graph
+        /// </summary>
+        /// <param name="edge">The edge to remove</param>
         public virtual void RemoveEdge(Edge edge)
         {
             if (Edges.Contains(edge))
@@ -311,16 +330,16 @@ namespace Graph
         /// <returns>string rappresentation of the graph</returns>
         public override string ToString()
         {
-            string result = "; Graph: " + Name + "\n";
-            result += "; the graph is " + (IsOriented() ? "" : "not ") + "oriented\n";
-            result += "; number of VerticesPosition = " + Vertices.Count + "\n";
-            result += "; number of edges = " + Grade() + "\n";
+            string result = "; Graph: " + Name + "\r\n";
+            result += "; the graph is " + (IsOriented() ? "" : "not ") + "oriented\r\n";
+            result += "; number of VerticesPosition = " + Vertices.Count + "\r\n";
+            result += "; number of edges = " + Grade() + "\r\n";
             result += "; Vertices: ";
             foreach (var node in Vertices.Values)
                 result += node + ", ";
-            result += "\b\b;\n; Edges: \n";
+            result += "\b\b;\r\n; Edges: \r\n";
             foreach (var edge in Edges)
-                result += "    " + edge + "\n";
+                result += "    " + edge + "\r\n";
             return result;
         }
 
@@ -370,7 +389,6 @@ namespace Graph
         /// Imports a graph from a file
         /// </summary>
         /// <param name="fileName">the filename</param>
-        /// <returns>the graph loaded from file</returns>
         /// <exception cref="FileNotFoundException">the file cannot be found</exception>
         /// <exception cref="FormatException">the format of the graph file is not correct</exception>
         public Graph(string fileName)
