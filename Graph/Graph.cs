@@ -2,203 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Graph
-{
-    /// <summary>
-    /// A class that represents a vertex in a graph
-    /// </summary>
-    public class Vertex
-    {
-        /// <summary>
-        /// Edge dictionary, every Vertex that the edge connects to has associated its weight
-        /// </summary>
-        public Dictionary<Vertex, int> Edges { get; } = new Dictionary<Vertex, int>();
-
-        /// <summary>
-        /// Name of the vertex
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Returns the exit grade of the vertex
-        /// </summary>
-        public int ExitGrade => Edges.Count;
-
-        /// <summary>
-        /// Enter grade of the vertex
-        /// </summary>
-        public int EnterGrade { get; private set; }
-
-        /// <summary>
-        /// Totale grade of the vertex
-        /// </summary>
-        public int Grade => ExitGrade + EnterGrade;
-
-        /// <summary>
-        /// Constructor of a vertex
-        /// </summary>
-        /// <param name="name">The name of the vertex</param>
-        public Vertex(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// Adds an edge from this vertex
-        /// </summary>
-        /// <param name="to">vertex to connect</param>
-        /// <param name="weight">weight of the edge</param>
-        public void AddEdge(Vertex to, int weight)
-        {
-            Edges.Add(to, weight);
-            to.EnterGrade += 1;
-        }
-
-        /// <summary>
-        /// Removes an edge
-        /// </summary>
-        /// <param name="to">destination vertex to remove</param>
-        public void RemoveEdge(Vertex to)
-        {
-            Edges.Remove(to);
-            to.EnterGrade -= 1;
-        }
-
-        /// <summary>
-        /// Iterates on node neighbors
-        /// </summary>
-        /// <returns>Neighbors iterator</returns>
-        public IEnumerator GetEnumerator() => Edges.Keys.GetEnumerator();
-
-        /// <summary>
-        /// Returns string rappresentation of the vertex, in practice its name
-        /// </summary>
-        /// <returns>string rappresentation of the vertex</returns>
-        public override string ToString() => Name;
-
-        /// <summary>
-        /// Gets the edge weight from this vertex to the one specified
-        /// </summary>
-        /// <param name="to">vertex to go to</param>
-        /// <returns>the weight of the edge between this vertex and the one specified</returns>
-        public int GetWeightTo(Vertex to) => Edges[to];
-
-        /// <summary>
-        /// Get the hash code of the vertex
-        /// </summary>
-        /// <returns>the hash code of the vertex</returns>
-        public override int GetHashCode() => Edges.GetHashCode() ^ Name.GetHashCode();
-
-        /// <summary>
-        /// Check if 2 vertex are equal
-        /// </summary>
-        /// <param name="obj">second vertex to compare</param>
-        /// <returns>true if equals</returns>
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Vertex))
-                return false;
-            Vertex other = (Vertex) obj;
-            return Edges.Equals(other.Edges) && other.Name == Name;
-        }
-    }
-
-    /// <summary>
-    /// A class that rappresents an edge in a graph
-    /// </summary>
-    public class Edge
-    {
-        /// <summary>
-        /// Vertex where the edge starts
-        /// </summary>
-        public Vertex From { get; }
-
-        /// <summary>
-        /// Vertex that the edge connects to
-        /// </summary>
-        public Vertex To { get; }
-
-        private int weight;
-        private bool bidirectional;
-
-        /// <summary>
-        /// Weight of the edge
-        /// </summary>
-        public int Weight {
-            get { return weight ; }
-            set
-            {
-                weight = value;
-                if (From.Edges.ContainsKey(To)) From.Edges[To] = value;
-                if (To.Edges.ContainsKey(From)) To.Edges[From] = value;
-            }
-        }
-
-        /// <summary>
-        /// true if the edge is bidirectional
-        /// </summary>
-        public bool Bidirectional {
-            get { return bidirectional; }
-            set
-            {
-                if (bidirectional != value)
-                {
-                    bidirectional = value;
-                    if (bidirectional)
-                        To.AddEdge(From, Weight);
-                    else
-                        To.RemoveEdge(From);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Constructor of an edge
-        /// </summary>
-        /// <param name="from">vertex to connect from</param>
-        /// <param name="to">vertex to connect to</param>
-        /// <param name="weight">weight of the edge</param>
-        /// <param name="bidirectional">true if bidirectional</param>
-        public Edge(Vertex from, Vertex to, int weight, bool bidirectional)
-        {
-            From = from;
-            To = to;
-            Weight = weight;
-            from.AddEdge(to, weight);
-            Bidirectional = bidirectional;
-        }
-
-        /// <summary>
-        /// Calculate hash code for the edge.
-        /// </summary>
-        /// <returns>Hash code of the edge</returns>
-        public override int GetHashCode() => From.GetHashCode() << 16 + To.GetHashCode();
-
-        /// <summary>
-        /// Check if two edges are equal
-        /// </summary>
-        /// <param name="obj">the other object</param>
-        /// <returns>true if the other object is equal to this</returns>
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Edge))
-                return false;
-            Edge other = (Edge) obj;
-            return other.From == From && other.To == To;
-        }
-
-        /// <summary>
-        /// Returns string rappresentation of the object
-        /// </summary>
-        /// <returns>string rappresentation of the object</returns>
-        public override string ToString() => From + (Bidirectional ? " <-> " : "  -> ") + To + " : " + Weight;
-    }
-
+{ 
     /// <summary>
     /// A class that rappresents a graph
     /// </summary>
@@ -220,10 +30,36 @@ namespace Graph
         public string Name { get; set; }
 
         /// <summary>
+        /// Static initializer for text format
+        /// </summary>
+        private static readonly StringFormat Format = new StringFormat()
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
+
+        /// <summary>
+        /// The font for the strings
+        /// </summary>
+        private static readonly Font font = new Font("Arial", 14);
+
+        /// <summary>
+        /// Size of the graph image
+        /// </summary>
+        public static Size Size { get; } = new Size(1500, 800);
+
+        /// <summary>
+        /// Radius of one vertex
+        /// </summary>
+        private const int Radius = 20;
+
+        /// <summary>
         /// Constructs a new graph object
         /// </summary>
-        public Graph()
+        /// <param name="name">name of the graph</param>
+        public Graph(string name)
         {
+            Name = name;
         }
 
         /// <summary>
@@ -256,7 +92,7 @@ namespace Graph
         /// Adds the a vertex to the graph
         /// </summary>
         /// <param name="vertex">the vertex to add</param>
-        public void AddVertex(Vertex vertex)
+        public virtual void AddVertex(Vertex vertex)
         {
             Vertices.Add(vertex.Name, vertex);
         }
@@ -340,6 +176,12 @@ namespace Graph
             result += "\b\b;\r\n; Edges: \r\n";
             foreach (var edge in Edges)
                 result += "    " + edge + "\r\n";
+            result += "%Vertices\r\n";
+            foreach (var vertex in Vertices.Values)
+            {
+                result += vertex + "\r\n";
+            }
+            result += "%EndFile\r\n";
             return result;
         }
 
@@ -391,17 +233,16 @@ namespace Graph
         /// <param name="fileName">the filename</param>
         /// <exception cref="FileNotFoundException">the file cannot be found</exception>
         /// <exception cref="FormatException">the format of the graph file is not correct</exception>
-        public Graph(string fileName)
+        public static Graph FromFile(string fileName)
         {
-
             using (var fileReader = new StreamReader(fileName))
             {
                 var line = fileReader.ReadLine();
                 if (line == null)
-                    return;
+                    return null;
                 var name = line.Split(':')[1].Trim();
-                Name = name;
-                while ((line = fileReader.ReadLine()) != null)
+                var graph = new Graph(name);
+                while ((line = fileReader.ReadLine()) != null && !line.Contains("%Vertices"))
                 {
                     line = line.Split(';')[0]; // remove comments
 
@@ -420,18 +261,114 @@ namespace Graph
                     if (s.Length < 3)
                         throw new FormatException();
 
-                    var a = GetOrCreate(s[0]);
-                    var b = GetOrCreate(s[2]);
+                    var a = graph.GetOrCreate(s[0]);
+                    var b = graph.GetOrCreate(s[2]);
 
                     bool bidirectional;
                     if (s[1] == "<->") bidirectional = true;
                     else if (s[1] == "->") bidirectional = false;
                     else throw new FormatException();
 
-                    AddEdge(a, b, weight, bidirectional: bidirectional);
-
+                    graph.AddEdge(a, b, weight, bidirectional: bidirectional);
                 }
+                while ((line = fileReader.ReadLine()) != null && !line.Contains("%EndFile"))
+                {
+                    line = line.Split(';')[0]; // remove comments
+                    if (line.Length < 4) continue;
+                    var parts = line.Split(',');
+                    var node = parts[0].Trim();
+                    var vertex = graph.GetOrCreate(node);
+                    vertex.X = Int32.Parse(parts[1].Trim());
+                    vertex.Y = Int32.Parse(parts[2].Trim());
+                }
+                return graph;
             }
+        }
+
+        /// <summary>
+        /// Draws the graph
+        /// </summary>
+        /// <param name="g">The graphics object to draw on</param>
+        public void Draw(Graphics g)
+        {
+            var arrow = new AdjustableArrowCap(5, 5);
+            var pen1 = new Pen(Color.Black, 2);
+            pen1.CustomEndCap = arrow;
+            var pen2 = new Pen(Color.Black, 2);
+            pen2.CustomStartCap = arrow;
+            pen2.CustomEndCap = arrow;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.FillRectangle(Brushes.White, new Rectangle(0, 0, Size.Width, Size.Height));
+            foreach (var v in Vertices.Values)
+            { 
+                Rectangle r = new Rectangle(v.X - 20, v.Y - 20, 40, 40);
+                g.FillEllipse(v.Color ? Brushes.LightCoral : Brushes.LightGreen, r);
+                pen1.Color = v.Color ? Color.Red : Color.Black;
+                g.DrawEllipse(pen1, r);
+                r.X -= 10;
+                r.Width += 20;
+                g.DrawString(v.Name, font, Brushes.Black, r, Format);
+
+            }
+            foreach (var e in Edges)
+            {
+                var pen = e.Bidirectional ? pen2 : pen1;
+                pen.Color = e.Color ? Color.Red : Color.Black;
+                var middleX = (e.From.X + e.To.X) / 2;
+                var middleY = (e.From.Y + e.To.Y) / 2;
+                var m = Math.Atan2(e.From.Y - e.To.Y, e.From.X - e.To.X);
+                g.DrawLine(pen, (float)-Math.Cos(m) * Radius + e.From.X, (float)-Math.Sin(m) * Radius + e.From.Y,
+                    (float)Math.Cos(m) * Radius + e.To.X, (float)Math.Sin(m) * Radius + e.To.Y);
+                g.DrawString(e.Weight.ToString(), font, Brushes.OrangeRed, middleX - 10, middleY - 20);
+            }
+        }
+
+        /// <summary>
+        /// Resets the color of the graph
+        /// </summary>
+        public void ResetColors()
+        {
+            foreach (var vertex in Vertices.Values)
+                vertex.Color = false;
+            foreach (var edge in Edges)
+                edge.Color = false;
+        }
+
+        /// <summary>
+        /// Returns a vertex on the givern position, if it exists
+        /// </summary>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
+        /// <returns>the vertex on the position if it exists, else null</returns>
+        public Vertex VertexOnPoint(int x, int y)
+        {
+            foreach (var v in Vertices.Values)
+                if (x > v.X - Radius && x < v.X + Radius && v.Y - Radius < y && y < v.Y + Radius)
+                    return v;
+            return null;
+        }
+
+        /// <summary>
+        /// Returns an edge near the specified position
+        /// </summary>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
+        /// <returns>the edge on the specified position if it exists, else null</returns>
+        public Edge EdgeOnPosition(int x, int y)
+        {
+            foreach (var edge in Edges)
+            {
+                var x1 = edge.From.X;
+                var x2 = edge.To.X;
+                var y1 = edge.From.Y;
+                var y2 = edge.To.Y;
+                var r = Math.Abs((y2 - y1) * (x - x1) - (x2 - x1) * (y - y1));
+                var d = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1);
+                var di = (x - x1) * (x - x1) + (y - y1) * (y - y1);
+                if (r < 1000 && di < d)
+                    return edge;
+            }
+            return null;
         }
 
         /// <summary>

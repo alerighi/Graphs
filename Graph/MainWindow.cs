@@ -12,9 +12,9 @@ namespace Graph
     public partial class MainWindow : Form
     {
         private readonly Graphics graphics;
-        private GraphRappresentation graph;
+        private Graph graph;
 
-        private VertexComponent[] selected = new VertexComponent[2];
+        private Vertex[] selected = new Vertex[2];
 
         private bool changed;
         private bool deleting;
@@ -32,7 +32,7 @@ namespace Graph
         }
 
 
-        private VertexComponent dragging;
+        private Vertex dragging;
         private int tmpX, tmpY;
 
         private bool selecting;
@@ -53,7 +53,7 @@ namespace Graph
             pictureBox1.MouseMove += PictureBox1OnMouseMove;
             pictureBox1.MouseUp += PictureBox1OnMouseUp;
             pictureBox1.MouseDoubleClick += PictureBox1OnMouseDoubleClick;
-            Image image = new Bitmap(GraphRappresentation.Size.Width, GraphRappresentation.Size.Height, PixelFormat.Format24bppRgb);
+            Image image = new Bitmap(Graph.Size.Width, Graph.Size.Height, PixelFormat.Format24bppRgb);
             pictureBox1.Image = image;
             graphics = Graphics.FromImage(image);
             NewGraph("NewGraph");
@@ -77,7 +77,7 @@ namespace Graph
         private void PictureBox1OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
             if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0 
-                && mouseEventArgs.X < GraphRappresentation.Size.Width && mouseEventArgs.Y < GraphRappresentation.Size.Height)
+                && mouseEventArgs.X < Graph.Size.Width && mouseEventArgs.Y < Graph.Size.Height)
             {
                 dragging.X = mouseEventArgs.X - tmpX;
                 dragging.Y = mouseEventArgs.Y - tmpY;
@@ -104,13 +104,12 @@ namespace Graph
                 RemoveEdge(args.X, args.Y);
                 return;
             }
-            dragging = graph.VertexOnMousePosition(args.X, args.Y);
+            dragging = graph.VertexOnPoint(args.X, args.Y);
             if (deleting && dragging != null)
             {
                 if (MessageBox.Show("Really delete vertex ?", "Delete Vertex", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    graph.DeleteVertex(dragging.V);
-                    graph.VerticesPosition.Remove(dragging.V);
+                    graph.DeleteVertex(dragging);
                     UpdateGraphics();
                 }
                 status.Text = DefaultStatus;
@@ -159,7 +158,7 @@ namespace Graph
                     return;
                 }
 
-                VertexComponent v = new VertexComponent(dialog.Name, 300, 300);
+                Vertex v = new Vertex(dialog.Name, 300, 300);
                 dialog.Dispose();
                 graph.AddVertex(v);
                 dragging = v;
@@ -175,7 +174,7 @@ namespace Graph
 
         private void edgeButton_Click(object sender, EventArgs e)
         {
-            selected = new VertexComponent[2];
+            selected = new Vertex[2];
             selecting = true;
             DoSelection();
         }
@@ -185,28 +184,30 @@ namespace Graph
         {
             try
             {
-                var result = Algorithm.Dijkstra(graph, selected[0].V, selected[1].V);
+                var result = Algorithm.Dijkstra(graph, selected[0], selected[1]);
                 Vertex previous = null;
                 foreach (var v in result.Item1)
                 {
-                    graph.VerticesPosition[v].Color = true;
+                    v.Color = true;
                     if (previous != null)
                     {
                         foreach (var edge in graph.Edges)
                             if (edge.From == previous && edge.To == v || edge.To == previous && edge.From == v)
-                                graph.ColorEdges[edge] = true;
+                                edge.Color = true;
                     }
                     previous = v;
                 }
-                status.Text = "Dijkstra: path from " + selected[0].V + " to " + selected[1].V + " costs " + result.Item2;
-                UpdateGraphics();
+                status.Text = "Dijkstra: path from " + selected[0] + " to " + selected[1] + " costs " + result.Item2;
             }
             catch (Algorithm.NoSuchPathException)
             {
-                MessageBox.Show("No path exists from " + selected[0].V + " to " + selected[1].V + "!", "Error",
+                MessageBox.Show("No path exists from " + selected[0] + " to " + selected[1] + "!", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ResetColor();
             }
-            
+            UpdateGraphics();
+            changed = false;
+
         }
 
         private void DoSelection()
@@ -223,13 +224,12 @@ namespace Graph
                     ExecDijkstra();
                     return;
                 }
-                Edge e = new Edge(selected[0].V, selected[1].V, 0, true);
+                Edge e = new Edge(selected[0], selected[1], 0, true);
                 using (var dialog = new EdgeWeightDialog(e)) 
                     if (dialog.ShowDialog(this) != DialogResult.OK)
                         return;
                 graph.AddEdge(e);
-                graph.ColorEdges.Add(e, false);
-                selected = new VertexComponent[2];
+                selected = new Vertex[2];
                 selecting = false;
                 status.Text = DefaultStatus;
                 ResetColor();
@@ -240,7 +240,7 @@ namespace Graph
 
         public void UpdateGraphics()
         {
-            graph.UpdateGraphics(graphics);
+            graph.Draw(graphics);
             changed = true;
             pictureBox1.Refresh();
         }
@@ -257,7 +257,7 @@ namespace Graph
         {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
             {
-                graph = new GraphRappresentation(openFileDialog1.FileName);
+                graph = Graph.FromFile(openFileDialog1.FileName);
                 fileName = openFileDialog1.FileName;
                 UpdateGraphics();
                 changed = false;
@@ -271,8 +271,7 @@ namespace Graph
 
         private void NewGraph(string name)
         {
-            graph = new GraphRappresentation();
-            graph.Name = name;
+            graph = new Graph(name);
             Text = name;
             UpdateGraphics();
         }
@@ -340,7 +339,7 @@ namespace Graph
 
         private void dijkstraToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            selected = new VertexComponent[2];
+            selected = new Vertex[2];
             selecting = true;
             doDijkstra = true;
             ResetColor();
