@@ -113,25 +113,5 @@ namespace Graph
         /// <param name="to">vertex to go to</param>
         /// <returns>the weight of the edge between this vertex and the one specified</returns>
         public int GetWeightTo(Vertex to) => Edges[to];
-
-        /// <summary>
-        /// Get the hash code of the vertex
-        /// </summary>
-        /// <returns>the hash code of the vertex</returns>
-        public override int GetHashCode() => Edges.GetHashCode() ^ Name.GetHashCode();
-
-        /// <summary>
-        /// Check if 2 vertex are equal
-        /// </summary>
-        /// <param name="obj">second vertex to compare</param>
-        /// <returns>true if equals</returns>
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Vertex))
-                return false;
-            Vertex other = (Vertex)obj;
-            return Edges.Equals(other.Edges) && other.Name == Name;
-        }
     }
-
 }

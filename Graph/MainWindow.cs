@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Graph
@@ -14,29 +15,24 @@ namespace Graph
         private readonly Graphics graphics;
         private Graph graph;
 
-        private Vertex[] selected = new Vertex[2];
-
         private bool changed;
-        private bool deleting;
         private bool selectingEdge;
-        private bool doDijkstra;
-        
+
+        private readonly object selection = new object();
+
         private string fileName = "";
 
         private const string DefaultStatus = "Ready";
         private const string ProgramTitle = "Graphs";
 
-        public override string Text {
+        public override string Text
+        {
             get { return base.Text; }
             set { base.Text = ProgramTitle + " - " + value; }
         }
 
-
         private Vertex dragging;
         private int tmpX, tmpY;
-
-        private bool selecting;
-        public static AutoResetEvent SelectEvent = new AutoResetEvent(false);
 
         [STAThread]
         private static void Main()
@@ -49,7 +45,7 @@ namespace Graph
         public MainWindow()
         {
             InitializeComponent();
-            pictureBox1.MouseDown += OnPictureBox1OnMouseDown; 
+            pictureBox1.MouseDown += OnPictureBox1OnMouseDown;
             pictureBox1.MouseMove += PictureBox1OnMouseMove;
             pictureBox1.MouseUp += PictureBox1OnMouseUp;
             pictureBox1.MouseDoubleClick += PictureBox1OnMouseDoubleClick;
@@ -76,7 +72,7 @@ namespace Graph
 
         private void PictureBox1OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
-            if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0 
+            if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0
                 && mouseEventArgs.X < Graph.Size.Width && mouseEventArgs.Y < Graph.Size.Height)
             {
                 dragging.X = mouseEventArgs.X - tmpX;
@@ -105,52 +101,73 @@ namespace Graph
                 return;
             }
             dragging = graph.VertexOnPoint(args.X, args.Y);
-            if (deleting && dragging != null)
-            {
-                if (MessageBox.Show("Really delete vertex ?", "Delete Vertex", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    graph.DeleteVertex(dragging);
-                    UpdateGraphics();
-                }
-                status.Text = DefaultStatus;
-                deleting = false;
-                dragging = null;
-                return;
-            }
-            deleting = false;
-            if (selected[0] == null && selecting && dragging != null)
-            {
-                selected[0] = dragging;
-                dragging.Color = true;
-                UpdateGraphics();
-                DoSelection();
-                dragging = null;
-            }
-            else if (selected[1] == null && selecting && dragging != null && dragging != selected[0])
-            {
-                selected[1] = dragging;
-                dragging.Color = true;
-                UpdateGraphics();
-                DoSelection();
-                dragging = null;
-            }
-            else
-            {
-                selecting = false;
-                ResetColor();
-                UpdateGraphics();
-                status.Text = DefaultStatus;
-            }
+            Monitor.Enter(selection);
+            Monitor.Pulse(selection);
+            Monitor.Exit(selection);
+
+            UpdateGraphics();
             if (dragging == null) return;
             tmpX = args.X - dragging.X;
             tmpY = args.Y - dragging.Y;
+
         }
+
+        private void CancelPendingSelections()
+        {
+            Monitor.Enter(selection);
+            dragging = null;
+            Monitor.Pulse(selection);
+            Monitor.Exit(selection);
+            ResetColor();
+            UpdateGraphics();   
+        }
+
+        private  Task<Vertex> SelectOneVertex() => Task.Factory.StartNew(() =>
+            {
+                Monitor.Enter(selection);
+                status.Text = "Select one vertex";
+                Monitor.Wait(selection);
+                var result = dragging;
+                status.Text = DefaultStatus;
+                Monitor.Exit(selection);
+                if (result != null)
+                    result.Color = true;
+                return result;
+            });
+        
+
+        private Task<Tuple<Vertex, Vertex>> SelectTwoVertices() => Task.Factory.StartNew(() =>
+            {
+                Monitor.Enter(selection);
+                status.Text = "Select the first vertex";
+                Monitor.Wait(selection);
+                var first = dragging;
+                dragging = null;
+                if (first == null)
+                {
+                    Monitor.Exit(selection);
+                    return null;
+                }
+                first.Color = true;
+                status.Text = "select the second vertex";
+                Monitor.Wait(selection);
+                var second = dragging;
+                if (dragging != null)
+                    dragging.Color = true;
+                dragging = null;
+                status.Text = DefaultStatus;
+                Monitor.Exit(selection);
+                if (second == null)
+                    return null;
+                return new Tuple<Vertex, Vertex>(first, second);
+            });
 
         private void addVertex_Click(object sender, EventArgs e)
         {
+            CancelPendingSelections();
             using (var dialog = new NewVertexDialog())
             {
-                if (dialog.ShowDialog(this) != DialogResult.OK) 
+                if (dialog.ShowDialog(this) != DialogResult.OK)
                     return;
                 if (graph.Vertices.ContainsKey(dialog.Name))
                 {
@@ -158,7 +175,7 @@ namespace Graph
                     return;
                 }
 
-                Vertex v = new Vertex(dialog.Name, 300, 300);
+                var v = new Vertex(dialog.Name, 300, 300);
                 dialog.Dispose();
                 graph.AddVertex(v);
                 dragging = v;
@@ -166,76 +183,31 @@ namespace Graph
             }
         }
 
-        private void deleteVertex_Click(object sender, EventArgs e)
+        private async void deleteVertex_Click(object sender, EventArgs e)
         {
-            status.Text = "Select the vertex to delete";
-            deleting = true;
-        }
-
-        private void edgeButton_Click(object sender, EventArgs e)
-        {
-            selected = new Vertex[2];
-            selecting = true;
-            DoSelection();
-        }
-
-        [SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
-        private void ExecDijkstra()
-        {
-            try
+            CancelPendingSelections();
+            var vertex = await SelectOneVertex();
+            if ( vertex != null &&
+                MessageBox.Show("Really delete vertex ?", "Delete Vertex", MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                var result = Algorithm.Dijkstra(graph, selected[0], selected[1]);
-                Vertex previous = null;
-                foreach (var v in result.Item1)
-                {
-                    v.Color = true;
-                    if (previous != null)
-                    {
-                        foreach (var edge in graph.Edges)
-                            if (edge.From == previous && edge.To == v || edge.To == previous && edge.From == v)
-                                edge.Color = true;
-                    }
-                    previous = v;
-                }
-                status.Text = "Dijkstra: path from " + selected[0] + " to " + selected[1] + " costs " + result.Item2;
+                graph.DeleteVertex(vertex);
             }
-            catch (Algorithm.NoSuchPathException)
-            {
-                MessageBox.Show("No path exists from " + selected[0] + " to " + selected[1] + "!", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                ResetColor();
-            }
+            dragging = null;
+            ResetColor();
             UpdateGraphics();
-            changed = false;
-
         }
 
-        private void DoSelection()
+        private async void edgeButton_Click(object sender, EventArgs e)
         {
-            if (selected[0] == null)
-                status.Text = "Select first Vertex";
-            else if (selected[1] == null)
-                status.Text = "Select second Vertex";
-            else
-            {
-                if (doDijkstra)
-                {
-                    doDijkstra = false;
-                    ExecDijkstra();
-                    return;
-                }
-                Edge e = new Edge(selected[0], selected[1], 0, true);
-                using (var dialog = new EdgeWeightDialog(e)) 
-                    if (dialog.ShowDialog(this) != DialogResult.OK)
-                        return;
-                graph.AddEdge(e);
-                selected = new Vertex[2];
-                selecting = false;
-                status.Text = DefaultStatus;
-                ResetColor();
-                UpdateGraphics();
-               
-            }
+            CancelPendingSelections();
+            var vertices = await SelectTwoVertices();
+            if (vertices == null) return;
+            using (var dialog = new EdgeWeightDialog())
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                    graph.AddEdge(vertices.Item1, vertices.Item2, dialog.Weight, dialog.Bidirectional);
+            ResetColor();
+            UpdateGraphics();
         }
 
         public void UpdateGraphics()
@@ -247,14 +219,15 @@ namespace Graph
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           if (fileName.Length < 2)
+            if (fileName.Length < 2)
                 saveWithNameToolStripMenuItem_Click(null, null);
-           else
+            else
                 SaveFile(fileName);
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            CancelPendingSelections();
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
             {
                 graph = Graph.FromFile(openFileDialog1.FileName);
@@ -266,6 +239,7 @@ namespace Graph
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            CancelPendingSelections();
             NewGraph();
         }
 
@@ -303,7 +277,8 @@ namespace Graph
         {
             if (changed)
             {
-                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
                 if (result == DialogResult.Cancel)
                     return;
                 if (result == DialogResult.Yes)
@@ -327,6 +302,7 @@ namespace Graph
 
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
+            CancelPendingSelections();
             selectingEdge = true;
             status.Text = "Select the edge to remove";
         }
@@ -337,13 +313,27 @@ namespace Graph
             ResetColor();
         }
 
-        private void dijkstraToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void dijkstraToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            selected = new Vertex[2];
-            selecting = true;
-            doDijkstra = true;
-            ResetColor();
-            DoSelection();
+            CancelPendingSelections();
+            var elements = await SelectTwoVertices();
+            if (elements != null)
+            {
+                try
+                {
+                    var result = Algorithm.Dijkstra(graph, elements.Item1, elements.Item2);
+                    graph.ColorListOfVertices(result.Item1);
+                    status.Text = $"Dijkstra: path from {elements.Item1} to {elements.Item2} costs {result.Item2}";
+                }
+                catch (Algorithm.NoSuchPathException)
+                {
+                    MessageBox.Show($"No path exists from {elements.Item1} to {elements.Item2}!", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ResetColor();
+                }
+            }
+            UpdateGraphics();
+            changed = false;
         }
 
         private void resetColorsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -368,7 +358,7 @@ namespace Graph
                     case "gif":
                         format = ImageFormat.Gif;
                         break;
-                   default:
+                    default:
                         format = ImageFormat.Jpeg;
                         break;
                 }
@@ -381,14 +371,14 @@ namespace Graph
             if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
                 SaveFile(saveFileDialog1.FileName);
         }
-        
+
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
-
             if (e.CloseReason == CloseReason.WindowsShutDown) return;
             if (changed)
             {
-                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
                 if (result == DialogResult.Cancel)
                     e.Cancel = true;
                 if (result == DialogResult.Yes)
@@ -405,8 +395,4 @@ namespace Graph
             changed = false;
         }
     }
-
-
-   
-
 }

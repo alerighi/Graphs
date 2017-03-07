@@ -79,25 +79,6 @@ namespace Graph
         }
 
         /// <summary>
-        /// Calculate hash code for the edge.
-        /// </summary>
-        /// <returns>Hash code of the edge</returns>
-        public override int GetHashCode() => From.GetHashCode() << 16 + To.GetHashCode();
-
-        /// <summary>
-        /// Check if two edges are equal
-        /// </summary>
-        /// <param name="obj">the other object</param>
-        /// <returns>true if the other object is equal to this</returns>
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Edge))
-                return false;
-            Edge other = (Edge)obj;
-            return other.From == From && other.To == To;
-        }
-
-        /// <summary>
         /// Returns string rappresentation of the object
         /// </summary>
         /// <returns>string rappresentation of the object</returns>

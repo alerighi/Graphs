@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -22,7 +21,7 @@ namespace Graph
         /// <summary>
         /// Edges of the graph
         /// </summary>
-        public HashSet<Edge> Edges { get; } = new HashSet<Edge>();
+        private HashSet<Edge> Edges { get; } = new HashSet<Edge>();
 
         /// <summary>
         /// Name of the graph
@@ -41,7 +40,7 @@ namespace Graph
         /// <summary>
         /// The font for the strings
         /// </summary>
-        private static readonly Font font = new Font("Arial", 14);
+        private static readonly Font Font = new Font("Arial", 14);
 
         /// <summary>
         /// Size of the graph image
@@ -66,36 +65,20 @@ namespace Graph
         /// Calculates total grade (number of edges) of the graph 
         /// </summary>
         /// <returns>grade of the graph</returns>
-        public int Grade()
-        {
-            int grade = 0;
-            foreach (var edge in Edges)
-            {
-                grade += edge.Bidirectional ? 2 : 1;
-            }
-            return grade;
-        }
+        public int Grade() => Edges.Sum(edge => edge.Bidirectional ? 2 : 1);
 
         /// <summary>
         /// Checks if the graph is oriented or not
         /// </summary>
         /// <returns>true if the graph is oriented</returns>
-        public bool IsOriented()
-        {
-            foreach (var edge in Edges)
-                if (!edge.Bidirectional)
-                    return true;
-            return false;
-        }
+        public bool IsOriented() => Edges.Any(edge => !edge.Bidirectional);
 
         /// <summary>
         /// Adds the a vertex to the graph
         /// </summary>
         /// <param name="vertex">the vertex to add</param>
-        public virtual void AddVertex(Vertex vertex)
-        {
-            Vertices.Add(vertex.Name, vertex);
-        }
+        public virtual void AddVertex(Vertex vertex) => Vertices.Add(vertex.Name, vertex);
+        
 
         /// <summary>
         /// Adds an edge to the graph
@@ -109,17 +92,7 @@ namespace Graph
         {
             if (!Vertices.Values.Contains(from) || !Vertices.Values.Contains(to))
                 throw new VertexNotInGraphException();
-            Edge e = new Edge(from, to, weight, bidirectional);
-            Edges.Add(e);
-        }
-
-        /// <summary>
-        /// Adds an edge to the graph
-        /// </summary>
-        /// <param name="edge">The edge to add</param>
-        public void AddEdge(Edge edge)
-        {
-            Edges.Add(edge);
+            Edges.Add(new Edge(from, to, weight, bidirectional));
         }
 
         /// <summary>
@@ -166,21 +139,14 @@ namespace Graph
         /// <returns>string rappresentation of the graph</returns>
         public override string ToString()
         {
-            string result = "; Graph: " + Name + "\r\n";
-            result += "; the graph is " + (IsOriented() ? "" : "not ") + "oriented\r\n";
-            result += "; number of VerticesPosition = " + Vertices.Count + "\r\n";
-            result += "; number of edges = " + Grade() + "\r\n";
-            result += "; Vertices: ";
-            foreach (var node in Vertices.Values)
-                result += node + ", ";
-            result += "\b\b;\r\n; Edges: \r\n";
-            foreach (var edge in Edges)
-                result += "    " + edge + "\r\n";
+            var result = $"; Graph: {Name}\r\n";
+            result += $"; the graph is {(IsOriented() ? "" : "not ")} oriented\r\n";
+            result += $"; number of vertices = {Vertices.Count}\r\n";
+            result += $"; number of edges = {Grade()}\r\n";
+            result += "; Edges: \r\n";
+            result = Edges.Aggregate(result, (current, edge) => $"{current}    {edge}\r\n");
             result += "%Vertices\r\n";
-            foreach (var vertex in Vertices.Values)
-            {
-                result += vertex + "\r\n";
-            }
+            result = Vertices.Values.Aggregate(result, (current, vertex) => $"{current}{vertex}\r\n");
             result += "%EndFile\r\n";
             return result;
         }
@@ -189,13 +155,12 @@ namespace Graph
         /// Remove a vertex from the graph, and the associated edges
         /// </summary>
         /// <param name="v">The vertex to remove</param>
-        [SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
         public void DeleteVertex(Vertex v)
         {
            if (!Vertices.ContainsKey(v.Name))
               return;
            
-           List<Edge> toRemove = new List<Edge>();
+           var toRemove = new List<Edge>();
            foreach (var edge in Edges)
            {
                 if (edge.From == v)
@@ -220,7 +185,7 @@ namespace Graph
         /// </summary>
         public void RandomizeWeights()
         {
-            Random rand = new Random();
+            var rand = new Random();
             foreach (var edge in Edges)
             {
                 edge.Weight = rand.Next(1, 21);
@@ -253,8 +218,7 @@ namespace Graph
                     if (p.Length < 2)
                         throw new FormatException();
 
-                    int weight;
-                    if (!Int32.TryParse(p[1], out weight))
+                    if (!int.TryParse(p[1], out var weight))
                         throw new FormatException();
 
                     var s = p[0].Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
@@ -269,7 +233,7 @@ namespace Graph
                     else if (s[1] == "->") bidirectional = false;
                     else throw new FormatException();
 
-                    graph.AddEdge(a, b, weight, bidirectional: bidirectional);
+                    graph.AddEdge(a, b, weight, bidirectional);
                 }
                 while ((line = fileReader.ReadLine()) != null && !line.Contains("%EndFile"))
                 {
@@ -278,8 +242,8 @@ namespace Graph
                     var parts = line.Split(',');
                     var node = parts[0].Trim();
                     var vertex = graph.GetOrCreate(node);
-                    vertex.X = Int32.Parse(parts[1].Trim());
-                    vertex.Y = Int32.Parse(parts[2].Trim());
+                    vertex.X = int.Parse(parts[1].Trim());
+                    vertex.Y = int.Parse(parts[2].Trim());
                 }
                 return graph;
             }
@@ -290,7 +254,7 @@ namespace Graph
         /// </summary>
         /// <param name="g">The graphics object to draw on</param>
         public void Draw(Graphics g)
-        {
+        {   // TODO: sistemare sto schifo
             var arrow = new AdjustableArrowCap(5, 5);
             var pen1 = new Pen(Color.Black, 2);
             pen1.CustomEndCap = arrow;
@@ -301,13 +265,13 @@ namespace Graph
             g.FillRectangle(Brushes.White, new Rectangle(0, 0, Size.Width, Size.Height));
             foreach (var v in Vertices.Values)
             { 
-                Rectangle r = new Rectangle(v.X - 20, v.Y - 20, 40, 40);
+                var r = new Rectangle(v.X - 20, v.Y - 20, 40, 40);
                 g.FillEllipse(v.Color ? Brushes.LightCoral : Brushes.LightGreen, r);
                 pen1.Color = v.Color ? Color.Red : Color.Black;
                 g.DrawEllipse(pen1, r);
                 r.X -= 10;
                 r.Width += 20;
-                g.DrawString(v.Name, font, Brushes.Black, r, Format);
+                g.DrawString(v.Name, Font, Brushes.Black, r, Format);
 
             }
             foreach (var e in Edges)
@@ -319,7 +283,7 @@ namespace Graph
                 var m = Math.Atan2(e.From.Y - e.To.Y, e.From.X - e.To.X);
                 g.DrawLine(pen, (float)-Math.Cos(m) * Radius + e.From.X, (float)-Math.Sin(m) * Radius + e.From.Y,
                     (float)Math.Cos(m) * Radius + e.To.X, (float)Math.Sin(m) * Radius + e.To.Y);
-                g.DrawString(e.Weight.ToString(), font, Brushes.OrangeRed, middleX - 10, middleY - 20);
+                g.DrawString(e.Weight.ToString(), Font, Brushes.OrangeRed, middleX - 10, middleY - 20);
             }
         }
 
@@ -342,10 +306,8 @@ namespace Graph
         /// <returns>the vertex on the position if it exists, else null</returns>
         public Vertex VertexOnPoint(int x, int y)
         {
-            foreach (var v in Vertices.Values)
-                if (x > v.X - Radius && x < v.X + Radius && v.Y - Radius < y && y < v.Y + Radius)
-                    return v;
-            return null;
+            return Vertices.Values.FirstOrDefault(
+                v => x > v.X - Radius && x < v.X + Radius && v.Y - Radius < y && y < v.Y + Radius);
         }
 
         /// <summary>
@@ -354,21 +316,32 @@ namespace Graph
         /// <param name="x">x coordinate</param>
         /// <param name="y">y coordinate</param>
         /// <returns>the edge on the specified position if it exists, else null</returns>
-        public Edge EdgeOnPosition(int x, int y)
+        public Edge EdgeOnPosition(int x, int y) => (
+            from edge in Edges
+            let x1 = edge.From.X
+            let x2 = edge.To.X
+            let y1 = edge.From.Y
+            let y2 = edge.To.Y
+            let r = Math.Abs((y2 - y1) * (x - x1) - (x2 - x1) * (y - y1))
+            let d = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1)
+            let di = (x - x1) * (x - x1) + (y - y1) * (y - y1)
+            where r < 1000 && di < d
+            select edge).FirstOrDefault();
+
+        public void ColorListOfVertices(List<Vertex> vertices)
         {
-            foreach (var edge in Edges)
+            Vertex previous = null;
+            foreach (var v in vertices)
             {
-                var x1 = edge.From.X;
-                var x2 = edge.To.X;
-                var y1 = edge.From.Y;
-                var y2 = edge.To.Y;
-                var r = Math.Abs((y2 - y1) * (x - x1) - (x2 - x1) * (y - y1));
-                var d = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1);
-                var di = (x - x1) * (x - x1) + (y - y1) * (y - y1);
-                if (r < 1000 && di < d)
-                    return edge;
+                v.Color = true;
+                if (previous != null)
+                {
+                    foreach (var edge in Edges)
+                        if (edge.From == previous && edge.To == v || edge.To == previous && edge.From == v)
+                            edge.Color = true;
+                }
+                previous = v;
             }
-            return null;
         }
 
         /// <summary>

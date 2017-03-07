@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Graph
 {
@@ -11,7 +12,7 @@ namespace Graph
     /// <summary>
     /// Static class that contains common algorithms on graphs
     /// </summary>
-    static class Algorithm
+    internal static class Algorithm
     {
         /// <summary>
         /// Find shortest path path from a to b with the classic Dijkstra algorithm 
@@ -21,17 +22,16 @@ namespace Graph
         /// <param name="b">destination vertex</param>
         /// <returns>A tuple containing a list of the nodes of the minimum path and the minimum cost</returns>
         /// <exception cref="NoSuchPathException">No path from a to b found</exception>
-        [SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
         public static DijkstraResult Dijkstra(Graph graph, Vertex a, Vertex b)
         {
             var distance = new Dictionary<Vertex, int>(); // distance from the origin
             var previous = new Dictionary<Vertex, Vertex>(); // precedent vertex
             var work = new List<Vertex>(); // list of working (not yet processed) vertex
 
-            foreach (Vertex node in graph.Vertices.Values) // algorithm initialization
+            foreach (var node in graph.Vertices.Values) // algorithm initialization
             {
                 work.Add(node);
-                distance[node] = Int32.MaxValue; // initial distance = infinite (int max)
+                distance[node] = int.MaxValue; // initial distance = infinite (int max)
             }
 
             distance[a] = 0; // distance from source vertex to itself equals 0
@@ -47,7 +47,7 @@ namespace Graph
 
                 work.Remove(smallest); // remove smallest element from work set
 
-                if (distance[smallest] == Int32.MaxValue) // no path a A b B
+                if (distance[smallest] == int.MaxValue) // no path a A b B
                     throw new NoSuchPathException();
 
                 if (smallest == b) // found shortest path, build result
@@ -77,23 +77,6 @@ namespace Graph
                 }
             }
             return null; // never reached
-        }
-
-        /// <summary>
-        /// Gets a string rappresentation of the result of Dijkstra algorithm
-        /// </summary>
-        /// <param name="result">the result to process</param>
-        /// <returns>string rappresentation of the result</returns>
-        public static string DijkstraResultToString(DijkstraResult result)
-        {
-            string res = "";
-            res += "Shortest path = " + result.Item2 + "\nPath: ";
-            foreach (var v in result.Item1)
-            {
-                res += v + " -> ";
-            }
-            res += "\b\b\b    ";
-            return res;
         }
 
         /// <summary>
