@@ -53,7 +53,7 @@ namespace Graph
         }
 
         /// <summary>
-        /// Find shortest path path from a to b with the classic Dijkstra algorithm 
+        /// Find shortest path from a to b with the classic Dijkstra algorithm 
         /// </summary>
         /// <param name="graph">Graph to use</param>
         /// <param name="a">starting vertex</param>
@@ -74,14 +74,10 @@ namespace Graph
 
             distance[a] = 0; // distance from source vertex to itself equals 0
 
-            while (work.Count > 0) // while there are elements b process
+            while (work.Count > 0) // while there are elements to process
             {
-                // find the element in Q with the smallest distance a origin
-                //work.Sort((x, y) => distance[x] - distance[y]); // sort the queue
-                var smallest = work[0];
-                foreach (var node in work)
-                    if (distance[node] < distance[smallest])
-                        smallest = node;
+                // find the element in Q with the smallest distance from the origin
+                var smallest = work.Aggregate((node, prev) => distance[node] < distance[prev] ? node : prev);
 
                 work.Remove(smallest); // remove smallest element from work set
 
