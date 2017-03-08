@@ -115,6 +115,7 @@ namespace Graph
                 status.Text = "Select one vertex";
                 Monitor.Wait(selection);
                 var result = dragging;
+                dragging = null;
                 status.Text = DefaultStatus;
                 Monitor.Exit(selection);
                 if (result != null)
@@ -318,16 +319,32 @@ namespace Graph
                 {
                     var result = Algorithm.Dijkstra(graph, elements.Item1, elements.Item2);
                     graph.ColorListOfVertices(result.Item1);
-                    status.Text = $"Dijkstra: path from {elements.Item1} to {elements.Item2} costs {result.Item2}";
+                    status.Text = $"Dijkstra: path from {elements.Item1.Name} to {elements.Item2.Name} costs {result.Item2}";
                 }
                 catch (Algorithm.NoSuchPathException)
                 {
-                    MessageBox.Show($"No path exists from {elements.Item1} to {elements.Item2}!", "Error",
+                    MessageBox.Show($"No path exists from {elements.Item1.Name} to {elements.Item2.Name}!", "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     ResetColor();
                 }
             }
             UpdateGraphics();
+        }
+
+        private async void OnDistanceVectorMenuItemClick(object sender, EventArgs e)
+        {
+            var result = Algorithm.DistanceVector(graph, await SelectOneVertex());
+            var distance = result.Item1;
+            var s = "";
+            var vertices = new List<Vertex>(distance.Keys);
+            vertices.Sort((v1, v2) => (int)distance[v1] - (int)distance[v2]);
+            foreach (var v in vertices)
+                if (distance[v] != uint.MaxValue)
+                    s += $"distance[{v.Name}] = {distance[v]}\r\n";
+            foreach (var v in vertices)
+                if (distance[v] == uint.MaxValue)
+                    s += $"distance[{v.Name}] = Inf\r\n";
+            MessageBox.Show(s, "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
@@ -403,21 +420,6 @@ namespace Graph
             Monitor.Exit(selection);
             ResetColor();
             UpdateGraphics();
-        }
-
-        private async void OnDistanceVectorMenuItemClick(object sender, EventArgs e)
-        {
-            var distance = Algorithm.DistanceVector(graph, await SelectOneVertex());
-            var s = "";
-            var vertices = new List<Vertex>(distance.Keys);
-            vertices.Sort((v1, v2) => (int) distance[v1] - (int) distance[v2]);
-            foreach (var v in vertices)
-                if (distance[v] != uint.MaxValue)
-                    s += $"distance{v.Name} = {distance[v]}\r\n";
-            foreach (var v in vertices)
-                if (distance[v] == uint.MaxValue)
-                    s += $"distance{v.Name} = Inf\r\n";
-            MessageBox.Show(s, "Result", MessageBoxButtons.OK);
         }
 
         private void RemoveEdge(int x, int y)

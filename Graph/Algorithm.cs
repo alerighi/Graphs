@@ -22,10 +22,11 @@ namespace Graph
         /// <param name="g">the graph to use</param>
         /// <param name="s">the source vertex</param>
         /// <returns>cector of the distances of every vertex from s</returns>
-        public static Dictionary<Vertex, uint> DistanceVector(Graph g, Vertex s)
+        public static Tuple<Dictionary<Vertex, uint>, Dictionary<Vertex, Vertex>>  DistanceVector(Graph g, Vertex s)
         {
 
             var distance = new Dictionary<Vertex, uint>(); // distance of v from s
+            var previous = new Dictionary<Vertex, Vertex>(); // previous node
             var Q = new Queue<Vertex>(); // FIFO queue
 
             foreach (Vertex v in g)
@@ -44,12 +45,13 @@ namespace Graph
                     if (distance[v] == uint.MaxValue) // if not already visited 
                     {
                         distance[v] = distance[min] + 1; // update distance
+                        previous[v] = min;
                         Q.Enqueue(v); // add to queue
                     }
                 }
             }
 
-            return distance;
+            return new Tuple<Dictionary<Vertex, uint>, Dictionary<Vertex, Vertex>>(distance, previous);
         }
 
         /// <summary>
@@ -64,7 +66,7 @@ namespace Graph
         {
             var distance = new Dictionary<Vertex, int>(); // distance from the origin
             var previous = new Dictionary<Vertex, Vertex>(); // precedent vertex
-            var work = new List<Vertex>(); // list of working (not yet processed) vertex
+            var work = new HashSet<Vertex>(); // list of working (not yet processed) vertex
 
             foreach (Vertex node in graph) // algorithm initialization
             {
