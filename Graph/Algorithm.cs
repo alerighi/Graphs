@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
+using System.Xml;
 
 namespace Graph
 {
@@ -14,31 +16,36 @@ namespace Graph
     /// </summary>
     internal static class Algorithm
     {
-
+        /// <summary>
+        /// Get the distance vector of the distances of every node in graph from vertex s
+        /// </summary>
+        /// <param name="g">the graph to use</param>
+        /// <param name="s">the source vertex</param>
+        /// <returns>cector of the distances of every vertex from s</returns>
         public static Dictionary<Vertex, uint> DistanceVector(Graph g, Vertex s)
         {
-            var distance = new Dictionary<Vertex, uint>();
-            var Q = new HashSet<Vertex>();
+
+            var distance = new Dictionary<Vertex, uint>(); // distance of v from s
+            var Q = new Queue<Vertex>(); // FIFO queue
 
             foreach (Vertex v in g)
             {
-                distance[v] = uint.MaxValue;
-                Q.Add(v);
+                distance[v] = uint.MaxValue; // initial distance = infinite
             }
 
-            distance[s] = 0;
+            distance[s] = 0; // distance of source with himself = 0
+            Q.Enqueue(s);    // add s to queue
 
-            while (Q.Count > 0)
+            while (Q.Count > 0) // while Q not empty
             {
-                var min = Q.FirstOrDefault();
-                foreach (var v in Q)
-                    if (distance[v] < distance[min])
-                        min = v;
-                Q.Remove(min);
+                var min = Q.Dequeue(); // remove from queue
                 foreach (Vertex v in min)
                 {
-                    if (distance[v] > distance[min] + 1)
-                        distance[v] = distance[min] + 1;
+                    if (distance[v] == uint.MaxValue) // if not already visited 
+                    {
+                        distance[v] = distance[min] + 1; // update distance
+                        Q.Enqueue(v); // add to queue
+                    }
                 }
             }
 
