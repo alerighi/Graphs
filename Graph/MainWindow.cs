@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,8 +17,7 @@ namespace Graph
     {
         private readonly Graphics graphics;
         private Graph graph;
-
-        private bool changed;
+        
         private bool selectingEdge;
 
         private readonly object selection = new object();
@@ -45,55 +47,21 @@ namespace Graph
         public MainWindow()
         {
             InitializeComponent();
-            pictureBox1.MouseDown += OnPictureBox1OnMouseDown;
-            pictureBox1.MouseMove += PictureBox1OnMouseMove;
-            pictureBox1.MouseUp += PictureBox1OnMouseUp;
-            pictureBox1.MouseDoubleClick += PictureBox1OnMouseDoubleClick;
+            pictureBox1.MouseDown += OnPictureBoxMouseDown;
+            pictureBox1.MouseMove += OnPictureBoxMouseMove;
+            pictureBox1.MouseUp += OnPictureBoxMouseUp;
+            pictureBox1.MouseDoubleClick += OnPictureBoxMouseDubleClick;
             Image image = new Bitmap(Graph.Size.Width, Graph.Size.Height, PixelFormat.Format24bppRgb);
             pictureBox1.Image = image;
             graphics = Graphics.FromImage(image);
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
             NewGraph("NewGraph");
             statusStrip1.Text = DefaultStatus;
         }
 
-        private void PictureBox1OnMouseDoubleClick(object sender, MouseEventArgs mouseEventArgs)
-        {
-            var edge = graph.EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
-            if (edge == null) return;
-            using (var dialog = new EdgeWeightDialog(edge))
-                dialog.ShowDialog(this);
-            UpdateGraphics();
-        }
+        // Mouse listeners
 
-        private void PictureBox1OnMouseUp(object sender, MouseEventArgs mouseEventArgs)
-        {
-            dragging = null;
-        }
-
-        private void PictureBox1OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
-        {
-            if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0
-                && mouseEventArgs.X < Graph.Size.Width && mouseEventArgs.Y < Graph.Size.Height)
-            {
-                dragging.X = mouseEventArgs.X - tmpX;
-                dragging.Y = mouseEventArgs.Y - tmpY;
-                UpdateGraphics();
-            }
-        }
-
-        private void RemoveEdge(int x, int y)
-        {
-            var edge = graph.EdgeOnPosition(x, y);
-            if (edge != null)
-            {
-                graph.RemoveEdge(edge);
-                UpdateGraphics();
-            }
-            selectingEdge = false;
-            status.Text = DefaultStatus;
-        }
-
-        private void OnPictureBox1OnMouseDown(object sender, MouseEventArgs args)
+        private void OnPictureBoxMouseDown(object sender, MouseEventArgs args)
         {
             if (selectingEdge)
             {
@@ -112,15 +80,34 @@ namespace Graph
 
         }
 
-        private void CancelPendingSelections()
+        private void OnPictureBoxMouseUp(object sender, MouseEventArgs mouseEventArgs)
         {
-            Monitor.Enter(selection);
             dragging = null;
-            Monitor.Pulse(selection);
-            Monitor.Exit(selection);
-            ResetColor();
-            UpdateGraphics();   
         }
+
+
+        private void OnPictureBoxMouseDubleClick(object sender, MouseEventArgs mouseEventArgs)
+        {
+            var edge = graph.EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
+            if (edge == null) return;
+            using (var dialog = new EdgeWeightDialog(edge))
+                dialog.ShowDialog(this);
+            UpdateGraphics();
+        }
+
+
+        private void OnPictureBoxMouseMove(object sender, MouseEventArgs mouseEventArgs)
+        {
+            if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0
+                && mouseEventArgs.X < Graph.Size.Width && mouseEventArgs.Y < Graph.Size.Height)
+            {
+                dragging.X = mouseEventArgs.X - tmpX;
+                dragging.Y = mouseEventArgs.Y - tmpY;
+                UpdateGraphics();
+            }
+        }
+
+        // selections tasks
 
         private  Task<Vertex> SelectOneVertex() => Task.Factory.StartNew(() =>
             {
@@ -162,14 +149,17 @@ namespace Graph
                 return new Tuple<Vertex, Vertex>(first, second);
             });
 
-        private void addVertex_Click(object sender, EventArgs e)
+
+        // toolbar button listeners
+
+        private void OnAddVertexButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
             using (var dialog = new NewVertexDialog())
             {
                 if (dialog.ShowDialog(this) != DialogResult.OK)
                     return;
-                if (graph.Vertices.ContainsKey(dialog.Name))
+                if (graph.Contains(dialog.Name))
                 {
                     MessageBox.Show("Vertex already in graph!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
@@ -183,7 +173,7 @@ namespace Graph
             }
         }
 
-        private async void deleteVertex_Click(object sender, EventArgs e)
+        private async void OnDeleteVertexButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
             var vertex = await SelectOneVertex();
@@ -198,7 +188,7 @@ namespace Graph
             UpdateGraphics();
         }
 
-        private async void edgeButton_Click(object sender, EventArgs e)
+        private async void OnAddEdgeButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
             var vertices = await SelectTwoVertices();
@@ -210,22 +200,24 @@ namespace Graph
             UpdateGraphics();
         }
 
-        public void UpdateGraphics()
+        private void OnRemoveEdgeButtonClick(object sender, EventArgs e)
         {
-            graph.Draw(graphics);
-            changed = true;
-            pictureBox1.Refresh();
+            CancelPendingSelections();
+            selectingEdge = true;
+            status.Text = "Select the edge to remove";
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        // menu item click listeners
+
+        // FIle menu
+
+        private void OnNewMenuItemClick(object sender, EventArgs e)
         {
-            if (fileName.Length < 2)
-                saveWithNameToolStripMenuItem_Click(null, null);
-            else
-                SaveFile(fileName);
+            CancelPendingSelections();
+            NewGraph();
         }
 
-        private void loadToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OnLoadMenuItemClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
@@ -233,115 +225,24 @@ namespace Graph
                 graph = Graph.FromFile(openFileDialog1.FileName);
                 fileName = openFileDialog1.FileName;
                 UpdateGraphics();
-                changed = false;
             }
         }
 
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OnSaveMenuItemClick(object sender, EventArgs e)
         {
-            CancelPendingSelections();
-            NewGraph();
+            if (fileName.Length < 2)
+                OnSaveWithNameMenuItemClick(null, null);
+            else
+                SaveFile(fileName);
         }
 
-        private void NewGraph(string name)
+        private void OnSaveWithNameMenuItemClick(object sender, EventArgs e)
         {
-            graph = new Graph(name);
-            Text = name;
-            UpdateGraphics();
+            if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
+                SaveFile(saveFileDialog1.FileName);
         }
 
-        private void NewGraph()
-        {
-            using (var dialog = new GraphNameDialog("NewGraph"))
-            {
-                if (dialog.ShowDialog(this) == DialogResult.OK)
-                {
-                    NewGraph(dialog.Name);
-                }
-            }
-        }
-
-        private void ResetColor()
-        {
-            graph.ResetColors();
-            UpdateGraphics();
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using (AboutBox1 about = new AboutBox1())
-                about.ShowDialog(this);
-        }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (changed)
-            {
-                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Question);
-                if (result == DialogResult.Cancel)
-                    return;
-                if (result == DialogResult.Yes)
-                    saveToolStripMenuItem_Click(sender, e);
-            }
-            Application.Exit();
-        }
-
-        private void changeGraphNameToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using (var dialog = new GraphNameDialog(graph.Name))
-            {
-                if (dialog.ShowDialog(this) == DialogResult.OK)
-                {
-                    graph.Name = dialog.Name;
-                    Text = dialog.Name;
-                    changed = true;
-                }
-            }
-        }
-
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {
-            CancelPendingSelections();
-            selectingEdge = true;
-            status.Text = "Select the edge to remove";
-        }
-
-        private void randomizeWeightsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            graph.RandomizeWeights();
-            ResetColor();
-        }
-
-        private async void dijkstraToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CancelPendingSelections();
-            var elements = await SelectTwoVertices();
-            if (elements != null)
-            {
-                try
-                {
-                    var result = Algorithm.Dijkstra(graph, elements.Item1, elements.Item2);
-                    graph.ColorListOfVertices(result.Item1);
-                    status.Text = $"Dijkstra: path from {elements.Item1} to {elements.Item2} costs {result.Item2}";
-                }
-                catch (Algorithm.NoSuchPathException)
-                {
-                    MessageBox.Show($"No path exists from {elements.Item1} to {elements.Item2}!", "Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    ResetColor();
-                }
-            }
-            UpdateGraphics();
-            changed = false;
-        }
-
-        private void resetColorsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ResetColor();
-        }
-
-        private void exportImageToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OnExportImageMenuItemClick(object sender, EventArgs e)
         {
             if (saveImageDialog.ShowDialog(this) == DialogResult.OK)
             {
@@ -366,33 +267,170 @@ namespace Graph
             }
         }
 
-        private void saveWithNameToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OnExitMenuItemClick(object sender, EventArgs e)
         {
-            if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
-                SaveFile(saveFileDialog1.FileName);
+            if (graph.ChangedSinceLastSave)
+            {
+                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+                if (result == DialogResult.Cancel)
+                    return;
+                if (result == DialogResult.Yes)
+                    OnSaveMenuItemClick(sender, e);
+            }
+            Application.Exit();
         }
 
-        private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
+        // menu edit
+
+        private void OnChangeGraphNameMenuItemClick(object sender, EventArgs e)
+        {
+            using (var dialog = new GraphNameDialog(graph.Name))
+            {
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    graph.Name = dialog.Name;
+                    Text = dialog.Name;
+                }
+            }
+        }
+
+        private void OnRandomizeWeightsMenuItemClick(object sender, EventArgs e)
+        {
+            graph.RandomizeWeights();
+            ResetColor();
+        }
+
+        private void OnResetColorsMenuItemClick(object sender, EventArgs e)
+        {
+            ResetColor();
+        }
+
+        // menu algorithm
+
+        private async void OnDijkstraMenuItemClick(object sender, EventArgs e)
+        {
+            CancelPendingSelections();
+            var elements = await SelectTwoVertices();
+            if (elements != null)
+            {
+                try
+                {
+                    var result = Algorithm.Dijkstra(graph, elements.Item1, elements.Item2);
+                    graph.ColorListOfVertices(result.Item1);
+                    status.Text = $"Dijkstra: path from {elements.Item1} to {elements.Item2} costs {result.Item2}";
+                }
+                catch (Algorithm.NoSuchPathException)
+                {
+                    MessageBox.Show($"No path exists from {elements.Item1} to {elements.Item2}!", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ResetColor();
+                }
+            }
+            UpdateGraphics();
+        }
+
+
+        // about menu
+        private void OnAboutMenuItemClick(object sender, EventArgs e)
+        {
+            using (AboutBox1 about = new AboutBox1())
+                about.ShowDialog(this);
+        }
+
+        // Window close event
+
+        private void OnFormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.WindowsShutDown) return;
-            if (changed)
+            if (graph.ChangedSinceLastSave)
             {
                 var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel,
                     MessageBoxIcon.Question);
                 if (result == DialogResult.Cancel)
                     e.Cancel = true;
                 if (result == DialogResult.Yes)
-                    saveToolStripMenuItem_Click(sender, e);
+                    OnSaveMenuItemClick(sender, e);
             }
         }
 
+        // utility functions
+
         private void SaveFile(string filename)
         {
-            StreamWriter writer = new StreamWriter(filename);
-            writer.WriteLine(graph.ToString());
-            writer.Close();
+            graph.SaveGraphToFile(filename);
             fileName = filename;
-            changed = false;
         }
+
+
+        private void ResetColor()
+        {
+            graph.ResetColors();
+            UpdateGraphics();
+        }
+
+
+        public void UpdateGraphics()
+        {
+            graph.Draw(graphics);
+            pictureBox1.Refresh();
+        }
+
+
+        private void NewGraph()
+        {
+            using (var dialog = new GraphNameDialog("NewGraph"))
+            {
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    NewGraph(dialog.Name);
+                }
+            }
+        }
+
+        private void NewGraph(string name)
+        {
+            graph = new Graph(name);
+            Text = name;
+            UpdateGraphics();
+        }
+
+        private void CancelPendingSelections()
+        {
+            Monitor.Enter(selection);
+            dragging = null;
+            Monitor.Pulse(selection);
+            Monitor.Exit(selection);
+            ResetColor();
+            UpdateGraphics();
+        }
+
+        private async void OnDistanceVectorMenuItemClick(object sender, EventArgs e)
+        {
+            var distance = Algorithm.DistanceVector(graph, await SelectOneVertex());
+            var s = "";
+            var vertices = new List<Vertex>(distance.Keys);
+            vertices.Sort((v1, v2) => (int) distance[v1] - (int) distance[v2]);
+            foreach (var v in vertices)
+                if (distance[v] != uint.MaxValue)
+                    s += $"distance{v.Name} = {distance[v]}\r\n";
+            foreach (var v in vertices)
+                if (distance[v] == uint.MaxValue)
+                    s += $"distance{v.Name} = Inf\r\n";
+            MessageBox.Show(s, "Result", MessageBoxButtons.OK);
+        }
+
+        private void RemoveEdge(int x, int y)
+        {
+            var edge = graph.EdgeOnPosition(x, y);
+            if (edge != null)
+            {
+                graph.RemoveEdge(edge);
+                UpdateGraphics();
+            }
+            selectingEdge = false;
+            status.Text = DefaultStatus;
+        }
+
     }
 }

@@ -64,6 +64,7 @@ namespace Graph
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.saveImageDialog = new System.Windows.Forms.SaveFileDialog();
+            this.distanceVectorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.toolStrip1.SuspendLayout();
@@ -73,6 +74,7 @@ namespace Graph
             // 
             // menuStrip1
             // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.editToolStripMenuItem,
@@ -80,8 +82,9 @@ namespace Graph
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Padding = new System.Windows.Forms.Padding(12, 4, 0, 4);
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(870, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1740, 46);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -96,7 +99,7 @@ namespace Graph
             this.exportImageToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(64, 38);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // newToolStripMenuItem
@@ -104,9 +107,9 @@ namespace Graph
             this.newToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(351, 38);
             this.newToolStripMenuItem.Text = "New";
-            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.OnNewMenuItemClick);
             // 
             // loadToolStripMenuItem
             // 
@@ -114,44 +117,44 @@ namespace Graph
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.ShortcutKeyDisplayString = "";
             this.loadToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(351, 38);
             this.loadToolStripMenuItem.Text = "Open";
-            this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
+            this.loadToolStripMenuItem.Click += new System.EventHandler(this.OnLoadMenuItemClick);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(351, 38);
             this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.OnSaveMenuItemClick);
             // 
             // saveWithNameToolStripMenuItem
             // 
             this.saveWithNameToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.saveWithNameToolStripMenuItem.Name = "saveWithNameToolStripMenuItem";
-            this.saveWithNameToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.saveWithNameToolStripMenuItem.Size = new System.Drawing.Size(351, 38);
             this.saveWithNameToolStripMenuItem.Text = "Save with name";
-            this.saveWithNameToolStripMenuItem.Click += new System.EventHandler(this.saveWithNameToolStripMenuItem_Click);
+            this.saveWithNameToolStripMenuItem.Click += new System.EventHandler(this.OnSaveWithNameMenuItemClick);
             // 
             // exportImageToolStripMenuItem
             // 
             this.exportImageToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.exportImageToolStripMenuItem.Name = "exportImageToolStripMenuItem";
             this.exportImageToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.exportImageToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.exportImageToolStripMenuItem.Size = new System.Drawing.Size(351, 38);
             this.exportImageToolStripMenuItem.Text = "Export image";
-            this.exportImageToolStripMenuItem.Click += new System.EventHandler(this.exportImageToolStripMenuItem_Click);
+            this.exportImageToolStripMenuItem.Click += new System.EventHandler(this.OnExportImageMenuItemClick);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(351, 38);
             this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.OnExitMenuItemClick);
             // 
             // editToolStripMenuItem
             // 
@@ -164,71 +167,72 @@ namespace Graph
             this.randomizeWeightsToolStripMenuItem,
             this.resetColorsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(67, 38);
             this.editToolStripMenuItem.Text = "Edit";
             // 
             // addVertexToolStripMenuItem
             // 
             this.addVertexToolStripMenuItem.Name = "addVertexToolStripMenuItem";
             this.addVertexToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
-            this.addVertexToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.addVertexToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.addVertexToolStripMenuItem.Text = "Add Vertex";
-            this.addVertexToolStripMenuItem.Click += new System.EventHandler(this.addVertex_Click);
+            this.addVertexToolStripMenuItem.Click += new System.EventHandler(this.OnAddVertexButtonClick);
             // 
             // deleteVertexToolStripMenuItem
             // 
             this.deleteVertexToolStripMenuItem.Name = "deleteVertexToolStripMenuItem";
             this.deleteVertexToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
-            this.deleteVertexToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.deleteVertexToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.deleteVertexToolStripMenuItem.Text = "Delete Vertex";
-            this.deleteVertexToolStripMenuItem.Click += new System.EventHandler(this.deleteVertex_Click);
+            this.deleteVertexToolStripMenuItem.Click += new System.EventHandler(this.OnDeleteVertexButtonClick);
             // 
             // addEdgeToolStripMenuItem
             // 
             this.addEdgeToolStripMenuItem.Name = "addEdgeToolStripMenuItem";
             this.addEdgeToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.A)));
-            this.addEdgeToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.addEdgeToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.addEdgeToolStripMenuItem.Text = "Add Edge";
-            this.addEdgeToolStripMenuItem.Click += new System.EventHandler(this.edgeButton_Click);
+            this.addEdgeToolStripMenuItem.Click += new System.EventHandler(this.OnAddEdgeButtonClick);
             // 
             // deleteEdgeToolStripMenuItem
             // 
             this.deleteEdgeToolStripMenuItem.Name = "deleteEdgeToolStripMenuItem";
             this.deleteEdgeToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D)));
-            this.deleteEdgeToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.deleteEdgeToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.deleteEdgeToolStripMenuItem.Text = "Delete Edge";
-            this.deleteEdgeToolStripMenuItem.Click += new System.EventHandler(this.toolStripButton1_Click);
+            this.deleteEdgeToolStripMenuItem.Click += new System.EventHandler(this.OnRemoveEdgeButtonClick);
             // 
             // changeGraphNameToolStripMenuItem
             // 
             this.changeGraphNameToolStripMenuItem.Name = "changeGraphNameToolStripMenuItem";
             this.changeGraphNameToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.N)));
-            this.changeGraphNameToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.changeGraphNameToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.changeGraphNameToolStripMenuItem.Text = "Change graph name";
-            this.changeGraphNameToolStripMenuItem.Click += new System.EventHandler(this.changeGraphNameToolStripMenuItem_Click);
+            this.changeGraphNameToolStripMenuItem.Click += new System.EventHandler(this.OnChangeGraphNameMenuItemClick);
             // 
             // randomizeWeightsToolStripMenuItem
             // 
             this.randomizeWeightsToolStripMenuItem.Name = "randomizeWeightsToolStripMenuItem";
             this.randomizeWeightsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
-            this.randomizeWeightsToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.randomizeWeightsToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.randomizeWeightsToolStripMenuItem.Text = "Randomize weights";
-            this.randomizeWeightsToolStripMenuItem.Click += new System.EventHandler(this.randomizeWeightsToolStripMenuItem_Click);
+            this.randomizeWeightsToolStripMenuItem.Click += new System.EventHandler(this.OnRandomizeWeightsMenuItemClick);
             // 
             // resetColorsToolStripMenuItem
             // 
             this.resetColorsToolStripMenuItem.Name = "resetColorsToolStripMenuItem";
             this.resetColorsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.R)));
-            this.resetColorsToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.resetColorsToolStripMenuItem.Size = new System.Drawing.Size(421, 38);
             this.resetColorsToolStripMenuItem.Text = "Reset colors";
-            this.resetColorsToolStripMenuItem.Click += new System.EventHandler(this.resetColorsToolStripMenuItem_Click);
+            this.resetColorsToolStripMenuItem.Click += new System.EventHandler(this.OnResetColorsMenuItemClick);
             // 
             // algorithmToolStripMenuItem
             // 
             this.algorithmToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.dijkstraToolStripMenuItem});
+            this.dijkstraToolStripMenuItem,
+            this.distanceVectorToolStripMenuItem});
             this.algorithmToolStripMenuItem.Name = "algorithmToolStripMenuItem";
-            this.algorithmToolStripMenuItem.Size = new System.Drawing.Size(76, 20);
+            this.algorithmToolStripMenuItem.Size = new System.Drawing.Size(140, 38);
             this.algorithmToolStripMenuItem.Text = "Algorithm ";
             // 
             // dijkstraToolStripMenuItem
@@ -236,9 +240,9 @@ namespace Graph
             this.dijkstraToolStripMenuItem.Name = "dijkstraToolStripMenuItem";
             this.dijkstraToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D)));
-            this.dijkstraToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.dijkstraToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
             this.dijkstraToolStripMenuItem.Text = "Dijkstra";
-            this.dijkstraToolStripMenuItem.Click += new System.EventHandler(this.dijkstraToolStripMenuItem_Click);
+            this.dijkstraToolStripMenuItem.Click += new System.EventHandler(this.OnDijkstraMenuItemClick);
             // 
             // helpToolStripMenuItem
             // 
@@ -246,7 +250,7 @@ namespace Graph
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(77, 38);
             this.helpToolStripMenuItem.Text = "Help";
             // 
             // aboutToolStripMenuItem
@@ -254,13 +258,14 @@ namespace Graph
             this.aboutToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(220, 38);
             this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.OnAboutMenuItemClick);
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(3, 3);
+            this.pictureBox1.Location = new System.Drawing.Point(6, 6);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(840, 423);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -269,15 +274,17 @@ namespace Graph
             // 
             // toolStrip1
             // 
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addVertex,
             this.deleteVertex,
             this.toolStripSeparator1,
             this.edgeButton,
             this.toolStripButton1});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 24);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 46);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(870, 25);
+            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
+            this.toolStrip1.Size = new System.Drawing.Size(1740, 39);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -287,10 +294,10 @@ namespace Graph
             this.addVertex.Image = ((System.Drawing.Image)(resources.GetObject("addVertex.Image")));
             this.addVertex.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.addVertex.Name = "addVertex";
-            this.addVertex.Size = new System.Drawing.Size(67, 22);
+            this.addVertex.Size = new System.Drawing.Size(135, 36);
             this.addVertex.Text = "Add Vertex";
             this.addVertex.ToolTipText = "Add";
-            this.addVertex.Click += new System.EventHandler(this.addVertex_Click);
+            this.addVertex.Click += new System.EventHandler(this.OnAddVertexButtonClick);
             // 
             // deleteVertex
             // 
@@ -298,14 +305,14 @@ namespace Graph
             this.deleteVertex.Image = ((System.Drawing.Image)(resources.GetObject("deleteVertex.Image")));
             this.deleteVertex.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.deleteVertex.Name = "deleteVertex";
-            this.deleteVertex.Size = new System.Drawing.Size(78, 22);
+            this.deleteVertex.Size = new System.Drawing.Size(162, 36);
             this.deleteVertex.Text = "Delete Vertex";
-            this.deleteVertex.Click += new System.EventHandler(this.deleteVertex_Click);
+            this.deleteVertex.Click += new System.EventHandler(this.OnDeleteVertexButtonClick);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 39);
             // 
             // edgeButton
             // 
@@ -313,9 +320,9 @@ namespace Graph
             this.edgeButton.Image = ((System.Drawing.Image)(resources.GetObject("edgeButton.Image")));
             this.edgeButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.edgeButton.Name = "edgeButton";
-            this.edgeButton.Size = new System.Drawing.Size(62, 22);
+            this.edgeButton.Size = new System.Drawing.Size(122, 36);
             this.edgeButton.Text = "Add Edge";
-            this.edgeButton.Click += new System.EventHandler(this.edgeButton_Click);
+            this.edgeButton.Click += new System.EventHandler(this.OnAddEdgeButtonClick);
             // 
             // toolStripButton1
             // 
@@ -323,24 +330,26 @@ namespace Graph
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(73, 22);
+            this.toolStripButton1.Size = new System.Drawing.Size(149, 36);
             this.toolStripButton1.Text = "Delete Edge";
-            this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
+            this.toolStripButton1.Click += new System.EventHandler(this.OnRemoveEdgeButtonClick);
             // 
             // statusStrip1
             // 
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.status});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 484);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 936);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(870, 22);
+            this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 28, 0);
+            this.statusStrip1.Size = new System.Drawing.Size(1740, 37);
             this.statusStrip1.TabIndex = 3;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // status
             // 
             this.status.Name = "status";
-            this.status.Size = new System.Drawing.Size(39, 17);
+            this.status.Size = new System.Drawing.Size(79, 32);
             this.status.Text = "Graph";
             // 
             // panel1
@@ -349,9 +358,10 @@ namespace Graph
             this.panel1.AutoSize = true;
             this.panel1.Controls.Add(this.pictureBox1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(0, 49);
+            this.panel1.Location = new System.Drawing.Point(0, 85);
+            this.panel1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(870, 435);
+            this.panel1.Size = new System.Drawing.Size(1740, 851);
             this.panel1.TabIndex = 4;
             // 
             // openFileDialog1
@@ -371,19 +381,27 @@ namespace Graph
             this.saveImageDialog.DefaultExt = "jpeg";
             this.saveImageDialog.Filter = "Jpeg|*.jpeg|PNG|*.png|Gif|*.gif|Bitmap|*.bmp";
             // 
+            // distanceVectorToolStripMenuItem
+            // 
+            this.distanceVectorToolStripMenuItem.Name = "distanceVectorToolStripMenuItem";
+            this.distanceVectorToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
+            this.distanceVectorToolStripMenuItem.Text = "Distance Vector";
+            this.distanceVectorToolStripMenuItem.Click += new System.EventHandler(this.OnDistanceVectorMenuItemClick);
+            // 
             // MainWindow
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(870, 506);
+            this.ClientSize = new System.Drawing.Size(1740, 973);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.Name = "MainWindow";
             this.Text = "Graphs";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnFormClosing);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -433,5 +451,6 @@ namespace Graph
         private ToolStripMenuItem saveWithNameToolStripMenuItem;
         private ToolStripMenuItem exportImageToolStripMenuItem;
         private SaveFileDialog saveImageDialog;
+        private ToolStripMenuItem distanceVectorToolStripMenuItem;
     }
 }

@@ -14,6 +14,37 @@ namespace Graph
     /// </summary>
     internal static class Algorithm
     {
+
+        public static Dictionary<Vertex, uint> DistanceVector(Graph g, Vertex s)
+        {
+            var distance = new Dictionary<Vertex, uint>();
+            var Q = new HashSet<Vertex>();
+
+            foreach (Vertex v in g)
+            {
+                distance[v] = uint.MaxValue;
+                Q.Add(v);
+            }
+
+            distance[s] = 0;
+
+            while (Q.Count > 0)
+            {
+                var min = Q.FirstOrDefault();
+                foreach (var v in Q)
+                    if (distance[v] < distance[min])
+                        min = v;
+                Q.Remove(min);
+                foreach (Vertex v in min)
+                {
+                    if (distance[v] > distance[min] + 1)
+                        distance[v] = distance[min] + 1;
+                }
+            }
+
+            return distance;
+        }
+
         /// <summary>
         /// Find shortest path path from a to b with the classic Dijkstra algorithm 
         /// </summary>
@@ -28,7 +59,7 @@ namespace Graph
             var previous = new Dictionary<Vertex, Vertex>(); // precedent vertex
             var work = new List<Vertex>(); // list of working (not yet processed) vertex
 
-            foreach (var node in graph.Vertices.Values) // algorithm initialization
+            foreach (Vertex node in graph) // algorithm initialization
             {
                 work.Add(node);
                 distance[node] = int.MaxValue; // initial distance = infinite (int max)
