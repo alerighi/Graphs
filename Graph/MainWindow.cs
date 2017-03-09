@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,10 +19,7 @@ namespace Graph
         private readonly Graphics graphics;
         private Graph graph;
         
-        private bool selectingEdge;
-
-        private readonly object selection = new object();
-
+    
         private string fileName = "";
 
         private const string DefaultStatus = "Ready";
@@ -30,11 +28,13 @@ namespace Graph
         public override string Text
         {
             get { return base.Text; }
-            set { base.Text = ProgramTitle + " - " + value; }
+            set { base.Text = $"{ProgramTitle} - {value}"; }
         }
 
-        private Vertex dragging;
-        private int tmpX, tmpY;
+        private Vertex selected;
+        private Point mousePosition;
+        private Point tmp;
+        private readonly object selectionMonitor = new object();
 
         [STAThread]
         private static void Main()
@@ -63,26 +63,25 @@ namespace Graph
 
         private void OnPictureBoxMouseDown(object sender, MouseEventArgs args)
         {
-            if (selectingEdge)
-            {
-                RemoveEdge(args.X, args.Y);
-                return;
-            }
-            dragging = graph.VertexOnPoint(args.X, args.Y);
-            Monitor.Enter(selection);
-            Monitor.Pulse(selection);
-            Monitor.Exit(selection);
+            selected = graph.VertexOnPoint(args.X, args.Y);
+            Monitor.Enter(selectionMonitor);
+            mousePosition.X = args.X;
+            mousePosition.Y = args.Y;
+            Monitor.Pulse(selectionMonitor);
+            Monitor.Exit(selectionMonitor);
 
             UpdateGraphics();
-            if (dragging == null) return;
-            tmpX = args.X - dragging.X;
-            tmpY = args.Y - dragging.Y;
+
+            
+            if (selected == null) return;
+            tmp.X = args.X - selected.X;
+            tmp.Y = args.Y - selected.Y;
 
         }
 
         private void OnPictureBoxMouseUp(object sender, MouseEventArgs mouseEventArgs)
         {
-            dragging = null;
+            selected = null;
         }
 
 
@@ -98,59 +97,61 @@ namespace Graph
 
         private void OnPictureBoxMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
-            if (dragging != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0
+            if (selected != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0
                 && mouseEventArgs.X < Graph.Size.Width && mouseEventArgs.Y < Graph.Size.Height)
             {
-                dragging.X = mouseEventArgs.X - tmpX;
-                dragging.Y = mouseEventArgs.Y - tmpY;
+                selected.X = mouseEventArgs.X - tmp.X;
+                selected.Y = mouseEventArgs.Y - tmp.Y;
                 UpdateGraphics();
             }
         }
 
         // selections tasks
 
-        private  Task<Vertex> SelectOneVertex() => Task.Factory.StartNew(() =>
-            {
-                Monitor.Enter(selection);
-                status.Text = "Select one vertex";
-                Monitor.Wait(selection);
-                var result = dragging;
-                dragging = null;
-                status.Text = DefaultStatus;
-                Monitor.Exit(selection);
-                if (result != null)
-                    result.Color = true;
-                return result;
-            });
-        
+        private Task<Point> WaitMouseClick() => Task.Factory.StartNew(() =>
+        {
+            Monitor.Enter(selectionMonitor);
+            Monitor.Wait(selectionMonitor);
+            Monitor.Exit(selectionMonitor);
+            selected = null;
+            return mousePosition;
+        });
 
-        private Task<Tuple<Vertex, Vertex>> SelectTwoVertices() => Task.Factory.StartNew(() =>
-            {
-                Monitor.Enter(selection);
-                status.Text = "Select the first vertex";
-                Monitor.Wait(selection);
-                var first = dragging;
-                dragging = null;
-                if (first == null)
-                {
-                    Monitor.Exit(selection);
-                    return null;
-                }
-                first.Color = true;
-                status.Text = "select the second vertex";
-                Monitor.Wait(selection);
-                var second = dragging;
-                if (dragging != null)
-                    dragging.Color = true;
-                dragging = null;
-                status.Text = DefaultStatus;
-                Monitor.Exit(selection);
-                if (second == null)
-                    return null;
-                return new Tuple<Vertex, Vertex>(first, second);
-            });
+        private async Task<Vertex> VertexSelectionTask()
+        {
+            var point = await WaitMouseClick();
+            var vertex = graph.VertexOnPoint(point.X, point.Y);
+            if (vertex != null)
+                vertex.Color = true;
+            UpdateGraphics();
+            status.Text = DefaultStatus;
+            return vertex;
+        }
 
+        private async Task<Vertex> SelectOneVertex()
+        {
+            ResetColor();
+            status.Text = "Select one vertex";
+            return await VertexSelectionTask();
+        }
 
+        private async Task<Tuple<Vertex, Vertex>> SelectTwoVertices()
+        {
+            ResetColor();
+            status.Text = "Select first vertex";
+            var first = await VertexSelectionTask();
+            if (first == null)
+                return null;
+
+            status.Text = "Select second vertex";
+            var second = await VertexSelectionTask();
+            if (second == null)
+                return null;
+
+            return new Tuple<Vertex, Vertex>(first, second);
+        }
+
+       
         // toolbar button listeners
 
         private void OnAddVertexButtonClick(object sender, EventArgs e)
@@ -169,7 +170,7 @@ namespace Graph
                 var v = new Vertex(dialog.Name, 300, 300);
                 dialog.Dispose();
                 graph.AddVertex(v);
-                dragging = v;
+                selected = v;
                 UpdateGraphics();
             }
         }
@@ -184,7 +185,7 @@ namespace Graph
             {
                 graph.DeleteVertex(vertex);
             }
-            dragging = null;
+            selected = null;
             ResetColor();
             UpdateGraphics();
         }
@@ -201,11 +202,18 @@ namespace Graph
             UpdateGraphics();
         }
 
-        private void OnRemoveEdgeButtonClick(object sender, EventArgs e)
+        private async void OnRemoveEdgeButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
-            selectingEdge = true;
             status.Text = "Select the edge to remove";
+            var position = await WaitMouseClick();
+            var edge = graph.EdgeOnPosition(position.X, position.Y);
+            if (edge != null)
+            {
+                graph.RemoveEdge(edge);
+                UpdateGraphics();
+            }
+            status.Text = DefaultStatus;
         }
 
         // menu item click listeners
@@ -393,7 +401,6 @@ namespace Graph
             pictureBox1.Refresh();
         }
 
-
         private void NewGraph()
         {
             using (var dialog = new GraphNameDialog("NewGraph"))
@@ -414,25 +421,13 @@ namespace Graph
 
         private void CancelPendingSelections()
         {
-            Monitor.Enter(selection);
-            dragging = null;
-            Monitor.Pulse(selection);
-            Monitor.Exit(selection);
+            Monitor.Enter(selectionMonitor);
+            mousePosition.X = 0;
+            mousePosition.Y = 0;
+            Monitor.Pulse(selectionMonitor);
+            Monitor.Exit(selectionMonitor);
             ResetColor();
             UpdateGraphics();
         }
-
-        private void RemoveEdge(int x, int y)
-        {
-            var edge = graph.EdgeOnPosition(x, y);
-            if (edge != null)
-            {
-                graph.RemoveEdge(edge);
-                UpdateGraphics();
-            }
-            selectingEdge = false;
-            status.Text = DefaultStatus;
-        }
-
     }
 }
