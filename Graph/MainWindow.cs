@@ -14,28 +14,26 @@ using System.Windows.Forms;
 namespace Graph
 {
 
+    /// <summary>
+    /// Main Window for the application
+    /// </summary>
     public partial class MainWindow : Form
     {
-        private readonly Graphics graphics;
-        private Graph graph;
-        
-    
-        private string fileName = "";
-
+      
         private const string DefaultStatus = "Ready";
         private const string ProgramTitle = "Graphs";
 
-        public override string Text
-        {
-            get { return base.Text; }
-            set { base.Text = $"{ProgramTitle} - {value}"; }
-        }
-
+        private readonly Graphics graphics;
+        private Graph graph;
         private Vertex selected;
         private Point mousePosition;
         private Point tmp;
         private readonly object selectionMonitor = new object();
+        private string fileName = "";
 
+        /// <summary>
+        /// Main for the applications
+        /// </summary>
         [STAThread]
         private static void Main()
         {
@@ -43,24 +41,44 @@ namespace Graph
             Application.Run(new MainWindow());
         }
 
-
+        /// <summary>
+        /// Construct a new MainWindow
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
+
+            // set mouse event listeners
             pictureBox1.MouseDown += OnPictureBoxMouseDown;
             pictureBox1.MouseMove += OnPictureBoxMouseMove;
             pictureBox1.MouseUp += OnPictureBoxMouseUp;
             pictureBox1.MouseDoubleClick += OnPictureBoxMouseDubleClick;
+
+            // create image
             Image image = new Bitmap(Graph.Size.Width, Graph.Size.Height, PixelFormat.Format24bppRgb);
             pictureBox1.Image = image;
+
+            // create graphics
             graphics = Graphics.FromImage(image);
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // create new graph
             NewGraph("NewGraph");
-            statusStrip1.Text = DefaultStatus;
+
+            // initialize status text
+            status.Text = DefaultStatus;
         }
 
-        // Mouse listeners
 
+        // +------------------+
+        // |   Mouse Events   |
+        // +------------------+
+
+        /// <summary>
+        /// Left mouse button click event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
         private void OnPictureBoxMouseDown(object sender, MouseEventArgs args)
         {
             selected = graph.VertexOnPoint(args.X, args.Y);
@@ -72,19 +90,29 @@ namespace Graph
 
             UpdateGraphics();
 
-            
+
             if (selected == null) return;
             tmp.X = args.X - selected.X;
             tmp.Y = args.Y - selected.Y;
 
         }
 
+        /// <summary>
+        /// Left mouse button relese event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="mouseEventArgs"></param>
         private void OnPictureBoxMouseUp(object sender, MouseEventArgs mouseEventArgs)
         {
             selected = null;
         }
 
 
+        /// <summary>
+        /// Left mouse button double click event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="mouseEventArgs"></param>
         private void OnPictureBoxMouseDubleClick(object sender, MouseEventArgs mouseEventArgs)
         {
             var edge = graph.EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
@@ -94,7 +122,11 @@ namespace Graph
             UpdateGraphics();
         }
 
-
+        /// <summary>
+        /// Mouse move event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="mouseEventArgs"></param>
         private void OnPictureBoxMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
             if (selected != null && mouseEventArgs.X > 0 && mouseEventArgs.Y > 0
@@ -106,8 +138,14 @@ namespace Graph
             }
         }
 
-        // selections tasks
+        // +---------------------+
+        // |   Selection Tasks   |
+        // +---------------------+
 
+        /// <summary>
+        /// Task that waits for a left mouse click
+        /// </summary>
+        /// <returns></returns>
         private Task<Point> WaitMouseClick() => Task.Factory.StartNew(() =>
         {
             Monitor.Enter(selectionMonitor);
@@ -117,6 +155,10 @@ namespace Graph
             return mousePosition;
         });
 
+        /// <summary>
+        /// Async task to select a vertex
+        /// </summary>
+        /// <returns></returns>
         private async Task<Vertex> VertexSelectionTask()
         {
             var point = await WaitMouseClick();
@@ -128,6 +170,10 @@ namespace Graph
             return vertex;
         }
 
+        /// <summary>
+        /// Async task to select one vertex
+        /// </summary>
+        /// <returns></returns>
         private async Task<Vertex> SelectOneVertex()
         {
             ResetColor();
@@ -135,6 +181,10 @@ namespace Graph
             return await VertexSelectionTask();
         }
 
+        /// <summary>
+        /// Async task to select two vertices
+        /// </summary>
+        /// <returns></returns>
         private async Task<Tuple<Vertex, Vertex>> SelectTwoVertices()
         {
             ResetColor();
@@ -151,9 +201,16 @@ namespace Graph
             return new Tuple<Vertex, Vertex>(first, second);
         }
 
-       
-        // toolbar button listeners
 
+        // +-------------------------------------+
+        // |   Menu Items and Button Listeners   |
+        // +-------------------------------------+
+
+        /// <summary>
+        /// AddVertex and Edit->Add Vertex click listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnAddVertexButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
@@ -175,11 +232,16 @@ namespace Graph
             }
         }
 
+        /// <summary>
+        /// DeleteVertex button and Edit->Delete Vertex listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void OnDeleteVertexButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
             var vertex = await SelectOneVertex();
-            if ( vertex != null &&
+            if (vertex != null &&
                 MessageBox.Show("Really delete vertex ?", "Delete Vertex", MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question) == DialogResult.Yes)
             {
@@ -190,6 +252,12 @@ namespace Graph
             UpdateGraphics();
         }
 
+
+        /// <summary>
+        /// AddEdge and Edit->Add Edge click listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void OnAddEdgeButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
@@ -202,6 +270,11 @@ namespace Graph
             UpdateGraphics();
         }
 
+        /// <summary>
+        /// DeleteEdge and Edit->Delete Edge listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void OnRemoveEdgeButtonClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
@@ -216,16 +289,23 @@ namespace Graph
             status.Text = DefaultStatus;
         }
 
-        // menu item click listeners
 
-        // FIle menu
-
+        /// <summary>
+        /// File->New menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnNewMenuItemClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
             NewGraph();
         }
 
+        /// <summary>
+        /// File->Load menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnLoadMenuItemClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
@@ -237,6 +317,11 @@ namespace Graph
             }
         }
 
+        /// <summary>
+        /// File->Save menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnSaveMenuItemClick(object sender, EventArgs e)
         {
             if (fileName.Length < 2)
@@ -245,12 +330,23 @@ namespace Graph
                 SaveFile(fileName);
         }
 
+
+        /// <summary>
+        /// File->Save With Name menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnSaveWithNameMenuItemClick(object sender, EventArgs e)
         {
             if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
                 SaveFile(saveFileDialog1.FileName);
         }
 
+        /// <summary>
+        /// File->Export Image menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnExportImageMenuItemClick(object sender, EventArgs e)
         {
             if (saveImageDialog.ShowDialog(this) == DialogResult.OK)
@@ -276,22 +372,21 @@ namespace Graph
             }
         }
 
+        /// <summary>
+        /// File->Exit menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnExitMenuItemClick(object sender, EventArgs e)
         {
-            if (graph.ChangedSinceLastSave)
-            {
-                var result = MessageBox.Show("Save current graph ?", "Save", MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Question);
-                if (result == DialogResult.Cancel)
-                    return;
-                if (result == DialogResult.Yes)
-                    OnSaveMenuItemClick(sender, e);
-            }
-            Application.Exit();
+            Close();
         }
 
-        // menu edit
-
+        /// <summary>
+        /// Edit-.Change Graph Name menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnChangeGraphNameMenuItemClick(object sender, EventArgs e)
         {
             using (var dialog = new GraphNameDialog(graph.Name))
@@ -299,24 +394,37 @@ namespace Graph
                 if (dialog.ShowDialog(this) == DialogResult.OK)
                 {
                     graph.Name = dialog.Name;
-                    Text = dialog.Name;
+                    UpdateGraphics();
                 }
             }
         }
 
+        /// <summary>
+        /// Edit->Randomize Weights menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnRandomizeWeightsMenuItemClick(object sender, EventArgs e)
         {
             graph.RandomizeWeights();
             ResetColor();
         }
 
+        /// <summary>
+        /// Edit->Reset Colors menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnResetColorsMenuItemClick(object sender, EventArgs e)
         {
             ResetColor();
         }
 
-        // menu algorithm
-
+        /// <summary>
+        /// Algorithm->Dijkstra menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void OnDijkstraMenuItemClick(object sender, EventArgs e)
         {
             CancelPendingSelections();
@@ -327,7 +435,8 @@ namespace Graph
                 {
                     var result = Algorithm.Dijkstra(graph, elements.Item1, elements.Item2);
                     graph.ColorListOfVertices(result.Item1);
-                    status.Text = $"Dijkstra: path from {elements.Item1.Name} to {elements.Item2.Name} costs {result.Item2}";
+                    status.Text =
+                        $"Dijkstra: path from {elements.Item1.Name} to {elements.Item2.Name} costs {result.Item2}";
                 }
                 catch (Algorithm.NoSuchPathException)
                 {
@@ -339,13 +448,18 @@ namespace Graph
             UpdateGraphics();
         }
 
+        /// <summary>
+        /// Algorithm->Distance Vector menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void OnDistanceVectorMenuItemClick(object sender, EventArgs e)
         {
             var result = Algorithm.DistanceVector(graph, await SelectOneVertex());
             var distance = result.Item1;
             var s = "";
             var vertices = new List<Vertex>(distance.Keys);
-            vertices.Sort((v1, v2) => (int)distance[v1] - (int)distance[v2]);
+            vertices.Sort((v1, v2) => (int) distance[v1] - (int) distance[v2]);
             foreach (var v in vertices)
                 if (distance[v] != uint.MaxValue)
                     s += $"distance[{v.Name}] = {distance[v]}\r\n";
@@ -356,15 +470,23 @@ namespace Graph
         }
 
 
-        // about menu
+        /// <summary>
+        /// Help->About menu listener
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnAboutMenuItemClick(object sender, EventArgs e)
         {
             using (AboutBox1 about = new AboutBox1())
                 about.ShowDialog(this);
         }
 
-        // Window close event
 
+        /// <summary>
+        /// Event that gets fired when the form is closing
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnFormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.WindowsShutDown) return;
@@ -379,28 +501,44 @@ namespace Graph
             }
         }
 
-        // utility functions
 
+        // +-------------------------------+
+        // |   Various Utility Functions   |
+        // +-------------------------------+
+
+
+        /// <summary>
+        /// Saves graph to file
+        /// </summary>
+        /// <param name="filename"></param>
         private void SaveFile(string filename)
         {
             graph.SaveGraphToFile(filename);
             fileName = filename;
         }
 
-
+        /// <summary>
+        /// Resets graph colors
+        /// </summary>
         private void ResetColor()
         {
             graph.ResetColors();
             UpdateGraphics();
         }
 
-
+        /// <summary>
+        /// Updates the graph view
+        /// </summary>
         public void UpdateGraphics()
         {
             graph.Draw(graphics);
+            Text = $"{ProgramTitle} - {(graph.ChangedSinceLastSave ? "*" : "")}{graph.Name}";
             pictureBox1.Refresh();
         }
 
+        /// <summary>
+        /// Create new graph, a dialog is shown to choose the name
+        /// </summary>
         private void NewGraph()
         {
             using (var dialog = new GraphNameDialog("NewGraph"))
@@ -412,13 +550,20 @@ namespace Graph
             }
         }
 
+        /// <summary>
+        /// Create new graph, with the given name
+        /// </summary>
+        /// <param name="name">name of the graph</param>
         private void NewGraph(string name)
         {
             graph = new Graph(name);
-            Text = name;
             UpdateGraphics();
         }
 
+        /// <summary>
+        /// Cancels pending waiting for the user to click in the graph area
+        /// Simply signal the monitor with a nonsense mouse position
+        /// </summary>
         private void CancelPendingSelections()
         {
             Monitor.Enter(selectionMonitor);
