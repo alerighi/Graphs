@@ -225,7 +225,6 @@ namespace Graph
                 }
 
                 var v = new Vertex(dialog.Name, 300, 300);
-                dialog.Dispose();
                 graph.AddVertex(v);
                 selected = v;
                 UpdateGraphics();

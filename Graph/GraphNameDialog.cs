@@ -12,7 +12,7 @@ namespace Graph
 {
     public partial class GraphNameDialog : Form
     {
-        public string Name { get; private set; }
+        public new string Name { get; private set; }
 
         public GraphNameDialog(string name)
         {

@@ -1,0 +1,656 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Graph</name>
+    </assembly>
+    <members>
+        <member name="F:Graph.AboutBox1.components">
+            <summary>
+            Variabile di progettazione necessaria.
+            </summary>
+        </member>
+        <member name="M:Graph.AboutBox1.Dispose(System.Boolean)">
+            <summary>
+            Pulire le risorse in uso.
+            </summary>
+        </member>
+        <member name="M:Graph.AboutBox1.InitializeComponent">
+            <summary>
+            Metodo necessario per il supporto della finestra di progettazione. Non modificare
+            il contenuto del metodo con l'editor di codice.
+            </summary>
+        </member>
+        <member name="T:Graph.Algorithm">
+            <summary>
+            Static class that contains common algorithms on graphs
+            </summary>
+        </member>
+        <member name="M:Graph.Algorithm.DistanceVector(Graph.Graph,Graph.Vertex)">
+            <summary>
+            Get the distance vector of the distances of every node in graph from vertex s
+            </summary>
+            <param name="g">the graph to use</param>
+            <param name="s">the source vertex</param>
+            <returns>cector of the distances of every vertex from s</returns>
+        </member>
+        <member name="M:Graph.Algorithm.Dijkstra(Graph.Graph,Graph.Vertex,Graph.Vertex)">
+            <summary>
+            Find shortest path from a to b with the classic Dijkstra algorithm 
+            </summary>
+            <param name="graph">Graph to use</param>
+            <param name="a">starting vertex</param>
+            <param name="b">destination vertex</param>
+            <returns>A tuple containing a list of the nodes of the minimum path and the minimum cost</returns>
+            <exception cref="T:Graph.Algorithm.NoSuchPathException">No path from a to b found</exception>
+        </member>
+        <member name="T:Graph.Algorithm.NoSuchPathException">
+            <summary>
+            An exception that is thrown when the path from A to B doesn't exist
+            </summary>
+        </member>
+        <member name="T:Graph.Edge">
+            <summary>
+            A class that rappresents an edge in a graph
+            </summary>
+        </member>
+        <member name="P:Graph.Edge.From">
+            <summary>
+            Vertex where the edge starts
+            </summary>
+        </member>
+        <member name="P:Graph.Edge.To">
+            <summary>
+            Vertex that the edge connects to
+            </summary>
+        </member>
+        <member name="P:Graph.Edge.Color">
+            <summary>
+            Color of the edge - true = red, false = black 
+            </summary>
+        </member>
+        <member name="P:Graph.Edge.Weight">
+            <summary>
+            Weight of the edge
+            </summary>
+        </member>
+        <member name="P:Graph.Edge.Bidirectional">
+            <summary>
+            true if the edge is bidirectional
+            </summary>
+        </member>
+        <member name="M:Graph.Edge.#ctor(Graph.Vertex,Graph.Vertex,System.Int32,System.Boolean)">
+            <summary>
+            Constructor of an edge
+            </summary>
+            <param name="from">vertex to connect from</param>
+            <param name="to">vertex to connect to</param>
+            <param name="weight">weight of the edge</param>
+            <param name="bidirectional">true if bidirectional</param>
+        </member>
+        <member name="M:Graph.Edge.ToString">
+            <summary>
+            Returns string rappresentation of the object
+            </summary>
+            <returns>string rappresentation of the object</returns>
+        </member>
+        <member name="F:Graph.EdgeWeightDialog.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Graph.EdgeWeightDialog.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Graph.EdgeWeightDialog.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="F:Graph.GraphNameDialog.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Graph.GraphNameDialog.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Graph.GraphNameDialog.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Graph.MainWindow">
+            <summary>
+            Main Window for the application
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.Main">
+            <summary>
+            Main for the applications
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.#ctor">
+            <summary>
+            Construct a new MainWindow
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.OnPictureBoxMouseDown(System.Object,System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Left mouse button click event
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnPictureBoxMouseUp(System.Object,System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Left mouse button relese event
+            </summary>
+            <param name="sender"></param>
+            <param name="mouseEventArgs"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnPictureBoxMouseDubleClick(System.Object,System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Left mouse button double click event
+            </summary>
+            <param name="sender"></param>
+            <param name="mouseEventArgs"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnPictureBoxMouseMove(System.Object,System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Mouse move event
+            </summary>
+            <param name="sender"></param>
+            <param name="mouseEventArgs"></param>
+        </member>
+        <member name="M:Graph.MainWindow.WaitMouseClick">
+            <summary>
+            Task that waits for a left mouse click
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Graph.MainWindow.VertexSelectionTask">
+            <summary>
+            Async task to select a vertex
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Graph.MainWindow.SelectOneVertex">
+            <summary>
+            Async task to select one vertex
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Graph.MainWindow.SelectTwoVertices">
+            <summary>
+            Async task to select two vertices
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Graph.MainWindow.OnAddVertexButtonClick(System.Object,System.EventArgs)">
+            <summary>
+            AddVertex and Edit->Add Vertex click listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnDeleteVertexButtonClick(System.Object,System.EventArgs)">
+            <summary>
+            DeleteVertex button and Edit->Delete Vertex listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnAddEdgeButtonClick(System.Object,System.EventArgs)">
+            <summary>
+            AddEdge and Edit->Add Edge click listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnRemoveEdgeButtonClick(System.Object,System.EventArgs)">
+            <summary>
+            DeleteEdge and Edit->Delete Edge listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnNewMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            File->New menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnLoadMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            File->Load menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnSaveMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            File->Save menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnSaveWithNameMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            File->Save With Name menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnExportImageMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            File->Export Image menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnExitMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            File->Exit menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnChangeGraphNameMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            Edit-.Change Graph Name menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnRandomizeWeightsMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            Edit->Randomize Weights menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnResetColorsMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            Edit->Reset Colors menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnDijkstraMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            Algorithm->Dijkstra menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnDistanceVectorMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            Algorithm->Distance Vector menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnAboutMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            Help->About menu listener
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.OnFormClosing(System.Object,System.Windows.Forms.FormClosingEventArgs)">
+            <summary>
+            Event that gets fired when the form is closing
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:Graph.MainWindow.SaveFile(System.String)">
+            <summary>
+            Saves graph to file
+            </summary>
+            <param name="filename"></param>
+        </member>
+        <member name="M:Graph.MainWindow.ResetColor">
+            <summary>
+            Resets graph colors
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.UpdateGraphics">
+            <summary>
+            Updates the graph view
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.NewGraph">
+            <summary>
+            Create new graph, a dialog is shown to choose the name
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.NewGraph(System.String)">
+            <summary>
+            Create new graph, with the given name
+            </summary>
+            <param name="name">name of the graph</param>
+        </member>
+        <member name="M:Graph.MainWindow.CancelPendingSelections">
+            <summary>
+            Cancels pending waiting for the user to click in the graph area
+            Simply signal the monitor with a nonsense mouse position
+            </summary>
+        </member>
+        <member name="F:Graph.MainWindow.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Graph.MainWindow.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Graph.MainWindow.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Graph.Graph">
+            <summary>
+            A class that rappresents a graph
+            </summary>
+        </member>
+        <member name="F:Graph.Graph.vertices">
+            <summary>
+            Vertices of the graph
+            </summary>
+        </member>
+        <member name="F:Graph.Graph.edges">
+            <summary>
+            Edges of the graph
+            </summary>
+        </member>
+        <member name="P:Graph.Graph.Name">
+            <summary>
+            Name of the graph
+            </summary>
+        </member>
+        <member name="F:Graph.Graph.Format">
+            <summary>
+            Static initializer for text format
+            </summary>
+        </member>
+        <member name="F:Graph.Graph.oldCode">
+            <summary>
+            The old hash code of the ToString() of the object, to see if the object is changed
+            </summary>
+        </member>
+        <member name="P:Graph.Graph.ChangedSinceLastSave">
+            <summary>
+            Checks if the graph has changed since last save (works 99.9% of the times!)
+            </summary>
+        </member>
+        <member name="P:Graph.Graph.Size">
+            <summary>
+            Size of the graph image
+            </summary>
+        </member>
+        <member name="F:Graph.Graph.Radius">
+            <summary>
+            Radius of one vertex
+            </summary>
+        </member>
+        <member name="M:Graph.Graph.#ctor(System.String)">
+            <summary>
+            Constructs a new graph object
+            </summary>
+            <param name="name">name of the graph</param>
+        </member>
+        <member name="M:Graph.Graph.Grade">
+            <summary>
+            Calculates total grade (number of edges) of the graph 
+            </summary>
+            <returns>grade of the graph</returns>
+        </member>
+        <member name="M:Graph.Graph.IsOriented">
+            <summary>
+            Checks if the graph is oriented or not
+            </summary>
+            <returns>true if the graph is oriented</returns>
+        </member>
+        <member name="M:Graph.Graph.AddVertex(Graph.Vertex)">
+            <summary>
+            Adds the a vertex to the graph
+            </summary>
+            <param name="vertex">the vertex to add</param>
+        </member>
+        <member name="M:Graph.Graph.AddEdge(Graph.Vertex,Graph.Vertex,System.Int32,System.Boolean)">
+            <summary>
+            Adds an edge to the graph
+            </summary>
+            <param name="from">Vertex to start from</param>
+            <param name="to">Vertex to connect to</param>
+            <param name="weight">weight of the edge</param>
+            <param name="bidirectional">true if the edge is bidirectional</param>
+            <exception cref="T:System.Exception">from or to doesn't exist in this graph</exception>
+        </member>
+        <member name="M:Graph.Graph.RemoveEdge(Graph.Edge)">
+            <summary>
+            Removes an edge from the graph
+            </summary>
+            <param name="edge">The edge to remove</param>
+        </member>
+        <member name="M:Graph.Graph.GetOrCreate(System.String)">
+            <summary>
+            If the vertex is already in the graph, it returns it.
+            If not, create a new vertex, add it to the graph and returns it
+            </summary>
+            <param name="name">the name of the vertex</param>
+            <returns>the vertex</returns>
+        </member>
+        <member name="M:Graph.Graph.GetEnumerator">
+            <summary>
+            Iterators that iterates on the VerticesPosition of the graph
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Graph.Graph.ToString">
+            <summary>
+            Returns a string rappresentation of the graph.
+            General informations such name, number of VerticesPosition, grade are shown, 
+            with the list of VerticesPosition and edges
+            </summary>
+            <returns>string rappresentation of the graph</returns>
+        </member>
+        <member name="M:Graph.Graph.DeleteVertex(Graph.Vertex)">
+            <summary>
+            Remove a vertex from the graph, and the associated edges
+            </summary>
+            <param name="v">The vertex to remove</param>
+        </member>
+        <member name="M:Graph.Graph.RandomizeWeights">
+            <summary>
+            Resets all the weights with random values in range 1..20
+            </summary>
+        </member>
+        <member name="M:Graph.Graph.FromFile(System.String)">
+            <summary>
+            Imports a graph from a file
+            </summary>
+            <param name="fileName">the filename</param>
+            <exception cref="T:System.IO.FileNotFoundException">the file cannot be found</exception>
+            <exception cref="T:System.FormatException">the format of the graph file is not correct</exception>
+        </member>
+        <member name="M:Graph.Graph.Draw(System.Drawing.Graphics)">
+            <summary>
+            Draws the graph
+            </summary>
+            <param name="g">The graphics object to draw on</param>
+        </member>
+        <member name="M:Graph.Graph.ResetColors">
+            <summary>
+            Resets the color of the graph
+            </summary>
+        </member>
+        <member name="M:Graph.Graph.VertexOnPoint(System.Int32,System.Int32)">
+            <summary>
+            Returns a vertex on the givern position, if it exists
+            </summary>
+            <param name="x">x coordinate</param>
+            <param name="y">y coordinate</param>
+            <returns>the vertex on the position if it exists, else null</returns>
+        </member>
+        <member name="M:Graph.Graph.EdgeOnPosition(System.Int32,System.Int32)">
+            <summary>
+            Returns an edge near the specified position
+            </summary>
+            <param name="x">x coordinate</param>
+            <param name="y">y coordinate</param>
+            <returns>the edge on the specified position if it exists, else null</returns>
+        </member>
+        <member name="M:Graph.Graph.ColorListOfVertices(System.Collections.Generic.List{Graph.Vertex})">
+            <summary>
+            Sets the color of a list of vertices and the edge between them red
+            </summary>
+            <param name="vertices">The list of vertices to color</param>
+        </member>
+        <member name="M:Graph.Graph.SaveGraphToFile(System.String)">
+            <summary>
+            Saves the current graph to file 
+            </summary>
+            <param name="fileName">the file to save graph to</param>
+        </member>
+        <member name="F:Graph.NewVertexDialog.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Graph.NewVertexDialog.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Graph.NewVertexDialog.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Graph.Properties.Resources">
+            <summary>
+              Classe di risorse fortemente tipizzata per la ricerca di stringhe localizzate e così via.
+            </summary>
+        </member>
+        <member name="P:Graph.Properties.Resources.ResourceManager">
+            <summary>
+              Restituisce l'istanza di ResourceManager nella cache utilizzata da questa classe.
+            </summary>
+        </member>
+        <member name="P:Graph.Properties.Resources.Culture">
+            <summary>
+              Esegue l'override della proprietà CurrentUICulture del thread corrente per tutte le
+              ricerche di risorse eseguite utilizzando questa classe di risorse fortemente tipizzata.
+            </summary>
+        </member>
+        <member name="T:Graph.Vertex">
+            <summary>
+            A class that represents a vertex in a graph
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.Edges">
+            <summary>
+            Edge dictionary, every Vertex that the edge connects to has associated its weight
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.Name">
+            <summary>
+            Name of the vertex
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.X">
+            <summary>
+            X position of the vertex
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.Y">
+            <summary>
+            Y position of the vertex
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.Color">
+            <summary>
+            Color of the vertex - true = red, false = black
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.ExitGrade">
+            <summary>
+            Returns the exit grade of the vertex
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.EnterGrade">
+            <summary>
+            Enter grade of the vertex
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.Grade">
+            <summary>
+            Totale grade of the vertex
+            </summary>
+        </member>
+        <member name="M:Graph.Vertex.#ctor(System.String)">
+            <summary>
+            Constructor of a vertex
+            </summary>
+            <param name="name">The name of the vertex</param>
+        </member>
+        <member name="M:Graph.Vertex.#ctor(System.String,System.Int32,System.Int32)">
+            <summary>
+            Construct a new vertex on the given position
+            </summary>
+            <param name="name">name of the vertex</param>
+            <param name="x">x coordinate</param>
+            <param name="y">y coordinate</param>
+        </member>
+        <member name="M:Graph.Vertex.AddEdge(Graph.Vertex,System.Int32)">
+            <summary>
+            Adds an edge from this vertex
+            </summary>
+            <param name="to">vertex to connect</param>
+            <param name="weight">weight of the edge</param>
+        </member>
+        <member name="M:Graph.Vertex.RemoveEdge(Graph.Vertex)">
+            <summary>
+            Removes an edge
+            </summary>
+            <param name="to">destination vertex to remove</param>
+        </member>
+        <member name="M:Graph.Vertex.GetEnumerator">
+            <summary>
+            Iterates on node neighbors
+            </summary>
+            <returns>Neighbors iterator</returns>
+        </member>
+        <member name="M:Graph.Vertex.ToString">
+            <summary>
+            Returns string rappresentation of the vertex, in practice its name
+            </summary>
+            <returns>string rappresentation of the vertex</returns>
+        </member>
+        <member name="M:Graph.Vertex.GetWeightTo(Graph.Vertex)">
+            <summary>
+            Gets the edge weight from this vertex to the one specified
+            </summary>
+            <param name="to">vertex to go to</param>
+            <returns>the weight of the edge between this vertex and the one specified</returns>
+        </member>
+    </members>
+</doc>

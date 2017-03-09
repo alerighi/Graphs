@@ -13,7 +13,7 @@ namespace Graph
     public partial class NewVertexDialog : Form
     {
 
-        public string Name { get; private set; }
+        public new string Name { get; private set; }
         private static char lastLetter = 'A';
 
         public NewVertexDialog()
