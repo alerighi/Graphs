@@ -299,6 +299,13 @@
             <param name="sender"></param>
             <param name="e"></param>
         </member>
+        <member name="M:Graph.MainWindow.dFSToolStripMenuItem_Click(System.Object,System.EventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
         <member name="M:Graph.MainWindow.OnAboutMenuItemClick(System.Object,System.EventArgs)">
             <summary>
             Help->About menu listener
@@ -407,6 +414,13 @@
             <summary>
             Radius of one vertex
             </summary>
+        </member>
+        <member name="M:Graph.Graph.Contains(System.String)">
+            <summary>
+            Check if a vertex with the given name is present in the graph
+            </summary>
+            <param name="name">name of the vertex</param>
+            <returns>true if vertex is in the graph, else false</returns>
         </member>
         <member name="M:Graph.Graph.#ctor(System.String)">
             <summary>
@@ -520,13 +534,25 @@
             <summary>
             Sets the color of a list of vertices and the edge between them red
             </summary>
-            <param name="vertices">The list of vertices to color</param>
+            <param name="verticesToColor">The list of vertices to color</param>
+        </member>
+        <member name="M:Graph.Graph.ClearVertexText">
+            <summary>
+            Clear the addictional text of the vertices
+            </summary>
         </member>
         <member name="M:Graph.Graph.SaveGraphToFile(System.String)">
             <summary>
             Saves the current graph to file 
             </summary>
             <param name="fileName">the file to save graph to</param>
+        </member>
+        <member name="M:Graph.Graph.ChangeVertexName(Graph.Vertex,System.String)">
+            <summary>
+            Changes the name of a vertex in the graph
+            </summary>
+            <param name="vertex">vertex to change name</param>
+            <param name="name">new name</param>
         </member>
         <member name="F:Graph.NewVertexDialog.components">
             <summary>
@@ -574,6 +600,11 @@
         <member name="P:Graph.Vertex.Name">
             <summary>
             Name of the vertex
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.Text">
+            <summary>
+            Additional text to show under the vertex name
             </summary>
         </member>
         <member name="P:Graph.Vertex.X">

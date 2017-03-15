@@ -11,7 +11,7 @@ namespace Graph
     /// <summary>
     /// A class that rappresents a graph
     /// </summary>
-    public class Graph
+    public sealed class Graph
     {
         /// <summary>
         /// Vertices of the graph
@@ -55,8 +55,13 @@ namespace Graph
         /// <summary>
         /// Radius of one vertex
         /// </summary>
-        private const int Radius = 20;
+        private const int Radius = 22;
 
+        /// <summary>
+        /// Check if a vertex with the given name is present in the graph
+        /// </summary>
+        /// <param name="name">name of the vertex</param>
+        /// <returns>true if vertex is in the graph, else false</returns>
         public bool Contains(string name) => vertices.ContainsKey(name);
 
         /// <summary>
@@ -85,7 +90,7 @@ namespace Graph
         /// Adds the a vertex to the graph
         /// </summary>
         /// <param name="vertex">the vertex to add</param>
-        public virtual void AddVertex(Vertex vertex)
+        public void AddVertex(Vertex vertex)
         {
             vertices.Add(vertex.Name, vertex);
         }
@@ -104,7 +109,7 @@ namespace Graph
         /// Removes an edge from the graph
         /// </summary>
         /// <param name="edge">The edge to remove</param>
-        public virtual void RemoveEdge(Edge edge)
+        public void RemoveEdge(Edge edge)
         {
             if (edges.Contains(edge))
             {
@@ -269,13 +274,13 @@ namespace Graph
                 g.Clear(Color.White);
                 foreach (var v in vertices.Values)
                 {
-                    var r = new Rectangle(v.X - 20, v.Y - 20, 40, 40);
+                    var r = new Rectangle(v.X - Radius, v.Y - Radius, Radius * 2, Radius * 2);
                     g.FillEllipse(v.Color ? Brushes.LightCoral : Brushes.LightGreen, r);
                     penOneArrow.Color = v.Color ? Color.Red : Color.Black;
                     g.DrawEllipse(penOneArrow, r);
                     r.X -= 10;
                     r.Width += 20;
-                    g.DrawString(v.Name, font, Brushes.Black, r, Format);
+                    g.DrawString(v.Name + "\n" + v.Text, font, Brushes.Black, r, Format);
 
                 }
                 foreach (var e in edges)
@@ -336,11 +341,11 @@ namespace Graph
         /// <summary>
         /// Sets the color of a list of vertices and the edge between them red
         /// </summary>
-        /// <param name="vertices">The list of vertices to color</param>
-        public void ColorListOfVertices(List<Vertex> vertices)
+        /// <param name="verticesToColor">The list of vertices to color</param>
+        public void ColorListOfVertices(List<Vertex> verticesToColor)
         {
             Vertex previous = null;
-            foreach (var v in vertices)
+            foreach (var v in verticesToColor)
             {
                 v.Color = true;
                 if (previous != null)
@@ -354,16 +359,39 @@ namespace Graph
         }
 
         /// <summary>
+        /// Clear the addictional text of the vertices
+        /// </summary>
+        public void ClearVertexText()
+        {
+            foreach (var v in vertices.Values)
+            {
+                v.Text = "";
+            }
+        }
+
+        /// <summary>
         /// Saves the current graph to file 
         /// </summary>
         /// <param name="fileName">the file to save graph to</param>
         public void SaveGraphToFile(string fileName)
         {
-            using (StreamWriter writer = new StreamWriter(fileName))
+            using (var writer = new StreamWriter(fileName))
             {
                 writer.WriteLine(ToString());
             }
             oldCode = ToString().GetHashCode();
+        }
+
+        /// <summary>
+        /// Changes the name of a vertex in the graph
+        /// </summary>
+        /// <param name="vertex">vertex to change name</param>
+        /// <param name="name">new name</param>
+        public void ChangeVertexName(Vertex vertex, string name)
+        {
+            vertices.Remove(name);
+            vertex.Name = name;
+            vertices.Add(name, vertex);
         }
     }
 }

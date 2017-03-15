@@ -23,6 +23,12 @@ namespace Graph
             lastLetter++;
         }
 
+        public NewVertexDialog(string name)
+        {
+            InitializeComponent();
+            textBox1.Text = name;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             Name = textBox1.Text;

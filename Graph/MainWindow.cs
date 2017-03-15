@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 
 namespace Graph
 {
@@ -69,7 +66,6 @@ namespace Graph
             status.Text = DefaultStatus;
         }
 
-
         // +------------------+
         // |   Mouse Events   |
         // +------------------+
@@ -81,6 +77,8 @@ namespace Graph
         /// <param name="args"></param>
         private void OnPictureBoxMouseDown(object sender, MouseEventArgs args)
         {
+            graph.ClearVertexText();
+
             selected = graph.VertexOnPoint(args.X, args.Y);
             Monitor.Enter(selectionMonitor);
             mousePosition.X = args.X;
@@ -102,11 +100,7 @@ namespace Graph
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="mouseEventArgs"></param>
-        private void OnPictureBoxMouseUp(object sender, MouseEventArgs mouseEventArgs)
-        {
-            selected = null;
-        }
-
+        private void OnPictureBoxMouseUp(object sender, MouseEventArgs mouseEventArgs) => selected = null;
 
         /// <summary>
         /// Left mouse button double click event
@@ -115,10 +109,28 @@ namespace Graph
         /// <param name="mouseEventArgs"></param>
         private void OnPictureBoxMouseDubleClick(object sender, MouseEventArgs mouseEventArgs)
         {
-            var edge = graph.EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
-            if (edge == null) return;
-            using (var dialog = new EdgeWeightDialog(edge))
-                dialog.ShowDialog(this);
+            var vertex = graph.VertexOnPoint(mouseEventArgs.X, mouseEventArgs.Y);
+            if (vertex != null)
+            {
+                using (var dialog = new NewVertexDialog(vertex.Name))
+                {
+                    if (dialog.ShowDialog(this) == DialogResult.OK)
+                    {
+                        if (!graph.Contains(dialog.Name))
+                            graph.ChangeVertexName(vertex, dialog.Name);
+                        else
+                            MessageBox.Show(this, "Name already used in graph", "Error", MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                    }
+                }
+            }
+            else
+            {
+                var edge = graph.EdgeOnPosition(mouseEventArgs.X, mouseEventArgs.Y);
+                if (edge == null) return;
+                using (var dialog = new EdgeWeightDialog(edge))
+                    dialog.ShowDialog(this);
+            }
             UpdateGraphics();
         }
 
@@ -201,7 +213,6 @@ namespace Graph
             return new Tuple<Vertex, Vertex>(first, second);
         }
 
-
         // +-------------------------------------+
         // |   Menu Items and Button Listeners   |
         // +-------------------------------------+
@@ -251,7 +262,6 @@ namespace Graph
             UpdateGraphics();
         }
 
-
         /// <summary>
         /// AddEdge and Edit->Add Edge click listener
         /// </summary>
@@ -287,7 +297,6 @@ namespace Graph
             }
             status.Text = DefaultStatus;
         }
-
 
         /// <summary>
         /// File->New menu listener
@@ -329,7 +338,6 @@ namespace Graph
                 SaveFile(fileName);
         }
 
-
         /// <summary>
         /// File->Save With Name menu listener
         /// </summary>
@@ -351,8 +359,8 @@ namespace Graph
             if (saveImageDialog.ShowDialog(this) == DialogResult.OK)
             {
                 ImageFormat format;
-                string extension = saveImageDialog.FileName.Split('.')[1];
-                switch (extension)
+
+                switch (saveImageDialog.FileName.Split('.')[1])
                 {
                     case "png":
                         format = ImageFormat.Png;
@@ -376,10 +384,7 @@ namespace Graph
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnExitMenuItemClick(object sender, EventArgs e)
-        {
-            Close();
-        }
+        private void OnExitMenuItemClick(object sender, EventArgs e) => Close();
 
         /// <summary>
         /// Edit-.Change Graph Name menu listener
@@ -414,10 +419,7 @@ namespace Graph
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnResetColorsMenuItemClick(object sender, EventArgs e)
-        {
-            ResetColor();
-        }
+        private void OnResetColorsMenuItemClick(object sender, EventArgs e) => ResetColor();
 
         /// <summary>
         /// Algorithm->Dijkstra menu listener
@@ -468,6 +470,16 @@ namespace Graph
             MessageBox.Show(s, "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void dFSToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Algorithm.DFS(graph);
+            UpdateGraphics();
+        }
 
         /// <summary>
         /// Help->About menu listener
@@ -476,7 +488,7 @@ namespace Graph
         /// <param name="e"></param>
         private void OnAboutMenuItemClick(object sender, EventArgs e)
         {
-            using (AboutBox1 about = new AboutBox1())
+            using (var about = new AboutBox1())
                 about.ShowDialog(this);
         }
 
@@ -500,11 +512,9 @@ namespace Graph
             }
         }
 
-
         // +-------------------------------+
         // |   Various Utility Functions   |
         // +-------------------------------+
-
 
         /// <summary>
         /// Saves graph to file
@@ -531,7 +541,7 @@ namespace Graph
         public void UpdateGraphics()
         {
             graph.Draw(graphics);
-            Text = $"{ProgramTitle} - {(graph.ChangedSinceLastSave ? "*" : "")}{graph.Name}";
+            Text = $"{ProgramTitle} - {(graph.ChangedSinceLastSave ? "*" : "")}{graph.Name} - {fileName}";
             pictureBox1.Refresh();
         }
 
@@ -573,5 +583,6 @@ namespace Graph
             ResetColor();
             UpdateGraphics();
         }
+
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace Graph
@@ -10,6 +12,13 @@ namespace Graph
 
     // type for Dijkstra algorithm result
     using DijkstraResult = Tuple<List<Vertex>, int>;
+
+    enum Colour
+    {
+        White, 
+        Gray, 
+        Black
+    }
 
     /// <summary>
     /// Static class that contains common algorithms on graphs
@@ -114,6 +123,64 @@ namespace Graph
             }
             return null; // never reached
         }
+
+
+        public static void DFS(Graph G)
+        {
+            var vertices = new List<Vertex>();
+            foreach (Vertex v in G)
+            {
+                vertices.Add(v);
+            }
+      
+            vertices.Reverse();
+
+            var color = new Dictionary<Vertex, Colour>();
+            var parent = new Dictionary<Vertex, Vertex>();
+            var d = new Dictionary<Vertex, int>();
+            var f = new Dictionary<Vertex, int>();
+            var time = 0;
+            foreach (Vertex v in vertices)
+            {
+                color[v] = Colour.White;
+                parent[v] = null;
+            }
+            foreach (Vertex v in vertices)
+            {
+                if (color[v] == Colour.White)
+                {
+                    DFS_VISIT(v);
+                }
+            }
+
+            void DFS_VISIT(Vertex u)
+            {
+                color[u] = Colour.Gray;
+                d[u] = ++time;
+                foreach (Vertex v in u)
+                {
+                    if (color[v] == Colour.White)
+                    {
+                        parent[v] = u;
+                        DFS_VISIT(v);
+                    }
+                }
+                color[u] = Colour.Black;
+                f[u] = ++time;
+            }
+
+            var result = "";
+            foreach (Vertex v in G)
+            {
+                v.Text = $"{d[v]}/{f[v]}";
+                result += $"parent[{v.Name}] = {parent[v]?.Name ?? "null"}\n";
+                result += $"d[{v.Name}] = {d[v]}\n";
+                result += $"f[{v.Name}] = {f[v]}\n";
+            }
+
+            MessageBox.Show(result, "Output");
+        }
+
 
         /// <summary>
         /// An exception that is thrown when the path from A to B doesn't exist

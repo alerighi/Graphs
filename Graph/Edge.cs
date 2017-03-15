@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Graph
+﻿namespace Graph
 {
     /// <summary>
     /// A class that rappresents an edge in a graph
     /// </summary>
-    public class Edge
+    public sealed class Edge
     {
         /// <summary>
         /// Vertex where the edge starts
@@ -24,7 +18,7 @@ namespace Graph
         /// <summary>
         /// Color of the edge - true = red, false = black 
         /// </summary>
-        public bool Color { get; set; } // TODO: oggetto color 
+        public bool Color { get; set; }
 
         private int weight;
         private bool bidirectional;

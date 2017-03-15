@@ -60,9 +60,9 @@
             this.label1.Location = new System.Drawing.Point(12, 15);
             this.label1.Name = "label1";
             this.label1.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.label1.Size = new System.Drawing.Size(120, 13);
+            this.label1.Size = new System.Drawing.Size(97, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Name of the new vertex";
+            this.label1.Text = "Name of the vertex";
             // 
             // textBox1
             // 
@@ -92,7 +92,7 @@
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "New Vertex";
+            this.Text = "Vertex name";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Graph
 {
     /// <summary>
     /// A class that represents a vertex in a graph
     /// </summary>
-    public class Vertex
+    public sealed class Vertex
     {
         /// <summary>
         /// Edge dictionary, every Vertex that the edge connects to has associated its weight
@@ -20,7 +16,12 @@ namespace Graph
         /// <summary>
         /// Name of the vertex
         /// </summary>
-        public string Name { get; }
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Additional text to show under the vertex name
+        /// </summary>
+        public string Text { get; set; } = "";
 
         /// <summary>
         /// X position of the vertex
@@ -35,7 +36,7 @@ namespace Graph
         /// <summary>
         /// Color of the vertex - true = red, false = black
         /// </summary>
-        public bool Color { get; set; } // TODO: oggetto color
+        public bool Color { get; set; } 
 
         /// <summary>
         /// Returns the exit grade of the vertex
