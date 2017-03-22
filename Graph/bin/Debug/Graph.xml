@@ -306,6 +306,13 @@
             <param name="sender"></param>
             <param name="e"></param>
         </member>
+        <member name="M:Graph.MainWindow.OnTopSortMenuItemClick(System.Object,System.EventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
         <member name="M:Graph.MainWindow.OnAboutMenuItemClick(System.Object,System.EventArgs)">
             <summary>
             Help->About menu listener
@@ -554,6 +561,12 @@
             <param name="vertex">vertex to change name</param>
             <param name="name">new name</param>
         </member>
+        <member name="M:Graph.Graph.Transpose">
+            <summary>
+            Transpose the graph
+            </summary>
+            <returns>The graph transposed</returns>
+        </member>
         <member name="F:Graph.NewVertexDialog.components">
             <summary>
             Required designer variable.
@@ -620,6 +633,11 @@
         <member name="P:Graph.Vertex.Color">
             <summary>
             Color of the vertex - true = red, false = black
+            </summary>
+        </member>
+        <member name="P:Graph.Vertex.ExtendedColor">
+            <summary>
+            Extended color attribute
             </summary>
         </member>
         <member name="P:Graph.Vertex.ExitGrade">

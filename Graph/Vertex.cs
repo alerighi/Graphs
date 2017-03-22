@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Graph
 {
@@ -36,7 +37,12 @@ namespace Graph
         /// <summary>
         /// Color of the vertex - true = red, false = black
         /// </summary>
-        public bool Color { get; set; } 
+        public bool Color { get; set; }
+
+        /// <summary>
+        /// Extended color attribute
+        /// </summary>
+        public Color ExtendedColor { get; set; } = System.Drawing.Color.LightCoral;
 
         /// <summary>
         /// Returns the exit grade of the vertex

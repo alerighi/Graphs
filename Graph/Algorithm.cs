@@ -13,6 +13,9 @@ namespace Graph
     // type for Dijkstra algorithm result
     using DijkstraResult = Tuple<List<Vertex>, int>;
 
+    /// <summary>
+    /// 
+    /// </summary>
     enum Colour
     {
         White, 
@@ -124,17 +127,25 @@ namespace Graph
             return null; // never reached
         }
 
-
-        public static void DFS(Graph G)
+        public static Tuple<Dictionary<Vertex, int>, Dictionary<Vertex, int>, Stack<Vertex>> DFS(Graph G)
         {
             var vertices = new List<Vertex>();
             foreach (Vertex v in G)
-            {
                 vertices.Add(v);
-            }
-      
-            vertices.Reverse();
+            return DFS(vertices);
+        }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vertices"></param>
+        /// <returns></returns>
+        public static Tuple<Dictionary<Vertex, int>, Dictionary<Vertex, int>, Stack<Vertex>> DFS(List<Vertex> vertices)
+        {
+            
+            var ordList = new Stack<Vertex>();
+           
             var color = new Dictionary<Vertex, Colour>();
             var parent = new Dictionary<Vertex, Vertex>();
             var d = new Dictionary<Vertex, int>();
@@ -166,21 +177,48 @@ namespace Graph
                     }
                 }
                 color[u] = Colour.Black;
+                ordList.Push(u);
                 f[u] = ++time;
             }
 
-            var result = "";
-            foreach (Vertex v in G)
-            {
-                v.Text = $"{d[v]}/{f[v]}";
-                result += $"parent[{v.Name}] = {parent[v]?.Name ?? "null"}\n";
-                result += $"d[{v.Name}] = {d[v]}\n";
-                result += $"f[{v.Name}] = {f[v]}\n";
-            }
-
-            MessageBox.Show(result, "Output");
+            return new Tuple<Dictionary<Vertex, int>,Dictionary<Vertex, int>,Stack<Vertex>>(d, f, ordList);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="G"></param>
+        /// <returns></returns>
+        public static List<HashSet<Vertex>> SCC(Graph G)
+        {
+            var res = DFS(G);
+            var list = new List<Vertex>();
+            var graph = G.Transpose();
+            foreach (var v in res.Item3)
+            {
+                list.Add(graph.GetOrCreate(v.Name));
+            }
+            
+            var res2 = DFS(list);
+
+            var l = new List<HashSet<Vertex>>();
+            var c = new HashSet<Vertex>();
+            var top = res2.Item3.Peek();
+            var d = res2.Item1[top];
+            foreach (var v in res2.Item3)
+            {
+               
+                if (res2.Item2[v] < d)
+                {
+                    d = res2.Item1[v];
+                    l.Add(c);
+                    c = new HashSet<Vertex>();
+                }
+                c.Add(G.GetOrCreate(v.Name));
+            }
+
+            return l;
+        }
 
         /// <summary>
         /// An exception that is thrown when the path from A to B doesn't exist

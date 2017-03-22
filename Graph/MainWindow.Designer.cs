@@ -50,6 +50,8 @@ namespace Graph
             this.algorithmToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dijkstraToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.distanceVectorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dFSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tOPSORTToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -65,7 +67,8 @@ namespace Graph
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.saveImageDialog = new System.Windows.Forms.SaveFileDialog();
-            this.dFSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.transposeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sCCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.toolStrip1.SuspendLayout();
@@ -232,7 +235,10 @@ namespace Graph
             this.algorithmToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.dijkstraToolStripMenuItem,
             this.distanceVectorToolStripMenuItem,
-            this.dFSToolStripMenuItem});
+            this.dFSToolStripMenuItem,
+            this.tOPSORTToolStripMenuItem,
+            this.transposeToolStripMenuItem,
+            this.sCCToolStripMenuItem});
             this.algorithmToolStripMenuItem.Name = "algorithmToolStripMenuItem";
             this.algorithmToolStripMenuItem.Size = new System.Drawing.Size(140, 38);
             this.algorithmToolStripMenuItem.Text = "Algorithm ";
@@ -252,6 +258,20 @@ namespace Graph
             this.distanceVectorToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
             this.distanceVectorToolStripMenuItem.Text = "Distance Vector";
             this.distanceVectorToolStripMenuItem.Click += new System.EventHandler(this.OnDistanceVectorMenuItemClick);
+            // 
+            // dFSToolStripMenuItem
+            // 
+            this.dFSToolStripMenuItem.Name = "dFSToolStripMenuItem";
+            this.dFSToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
+            this.dFSToolStripMenuItem.Text = "DFS";
+            this.dFSToolStripMenuItem.Click += new System.EventHandler(this.dFSToolStripMenuItem_Click);
+            // 
+            // tOPSORTToolStripMenuItem
+            // 
+            this.tOPSORTToolStripMenuItem.Name = "tOPSORTToolStripMenuItem";
+            this.tOPSORTToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
+            this.tOPSORTToolStripMenuItem.Text = "TOP SORT";
+            this.tOPSORTToolStripMenuItem.Click += new System.EventHandler(this.OnTopSortMenuItemClick);
             // 
             // helpToolStripMenuItem
             // 
@@ -274,7 +294,7 @@ namespace Graph
             // pictureBox1
             // 
             this.pictureBox1.Location = new System.Drawing.Point(6, 6);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(6);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(840, 423);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -368,7 +388,7 @@ namespace Graph
             this.panel1.Controls.Add(this.pictureBox1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 85);
-            this.panel1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.panel1.Margin = new System.Windows.Forms.Padding(6);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(2342, 1188);
             this.panel1.TabIndex = 4;
@@ -390,12 +410,19 @@ namespace Graph
             this.saveImageDialog.DefaultExt = "jpeg";
             this.saveImageDialog.Filter = "Jpeg|*.jpeg|PNG|*.png|Gif|*.gif|Bitmap|*.bmp";
             // 
-            // dFSToolStripMenuItem
+            // transposeToolStripMenuItem
             // 
-            this.dFSToolStripMenuItem.Name = "dFSToolStripMenuItem";
-            this.dFSToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
-            this.dFSToolStripMenuItem.Text = "DFS";
-            this.dFSToolStripMenuItem.Click += new System.EventHandler(this.dFSToolStripMenuItem_Click);
+            this.transposeToolStripMenuItem.Name = "transposeToolStripMenuItem";
+            this.transposeToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
+            this.transposeToolStripMenuItem.Text = "Transpose";
+            this.transposeToolStripMenuItem.Click += new System.EventHandler(this.transposeToolStripMenuItem_Click);
+            // 
+            // sCCToolStripMenuItem
+            // 
+            this.sCCToolStripMenuItem.Name = "sCCToolStripMenuItem";
+            this.sCCToolStripMenuItem.Size = new System.Drawing.Size(348, 38);
+            this.sCCToolStripMenuItem.Text = "SCC";
+            this.sCCToolStripMenuItem.Click += new System.EventHandler(this.sCCToolStripMenuItem_Click);
             // 
             // MainWindow
             // 
@@ -407,7 +434,7 @@ namespace Graph
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.Margin = new System.Windows.Forms.Padding(6);
             this.Name = "MainWindow";
             this.Text = "Graphs";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnFormClosing);
@@ -462,5 +489,8 @@ namespace Graph
         private SaveFileDialog saveImageDialog;
         private ToolStripMenuItem distanceVectorToolStripMenuItem;
         private ToolStripMenuItem dFSToolStripMenuItem;
+        private ToolStripMenuItem tOPSORTToolStripMenuItem;
+        private ToolStripMenuItem transposeToolStripMenuItem;
+        private ToolStripMenuItem sCCToolStripMenuItem;
     }
 }

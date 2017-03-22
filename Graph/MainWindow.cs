@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.XPath;
 
 
 namespace Graph
@@ -43,6 +45,7 @@ namespace Graph
         /// </summary>
         public MainWindow()
         {
+  
             InitializeComponent();
 
             // set mouse event listeners
@@ -477,10 +480,28 @@ namespace Graph
         /// <param name="e"></param>
         private void dFSToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Algorithm.DFS(graph);
+            var res = Algorithm.DFS(graph);
+           
+            foreach (Vertex v in graph)
+            {
+                v.Text = $"{res.Item1[v]}/{res.Item2[v]}";
+            }
+
             UpdateGraphics();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnTopSortMenuItemClick(object sender, EventArgs e)
+        {
+            var res = Algorithm.DFS(graph);
+            var result = res.Item3.Pop().Name;
+            result = res.Item3.Aggregate(result, (current, v) => current + $" >> {v.Name}");
+            MessageBox.Show(this, result, "Output", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
         /// <summary>
         /// Help->About menu listener
         /// </summary>
@@ -584,5 +605,30 @@ namespace Graph
             UpdateGraphics();
         }
 
+        private void transposeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            graph = graph.Transpose();
+            UpdateGraphics();
+        }
+
+        private void sCCToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var res = Algorithm.SCC(graph);
+            var color = 0;
+            var result = "";
+            foreach (var c in res)
+            {
+                foreach (var v in c)
+                {
+                    v.Color = true;
+                    v.ExtendedColor = Color.FromArgb(255, color%255, (color+70)%255, (color+170)%255);
+                    result += v.Name + ",";
+                }
+                result += "\n";
+                color += 100;
+            }
+            UpdateGraphics();
+            MessageBox.Show(result);
+        }
     }
 }

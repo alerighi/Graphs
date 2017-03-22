@@ -275,7 +275,7 @@ namespace Graph
                 foreach (var v in vertices.Values)
                 {
                     var r = new Rectangle(v.X - Radius, v.Y - Radius, Radius * 2, Radius * 2);
-                    g.FillEllipse(v.Color ? Brushes.LightCoral : Brushes.LightGreen, r);
+                    g.FillEllipse(v.Color ? new SolidBrush(v.ExtendedColor) : Brushes.LightGreen, r); //TODO: fix memory leak
                     penOneArrow.Color = v.Color ? Color.Red : Color.Black;
                     g.DrawEllipse(penOneArrow, r);
                     r.X -= 10;
@@ -303,7 +303,10 @@ namespace Graph
         public void ResetColors()
         {
             foreach (var vertex in vertices.Values)
+            {
                 vertex.Color = false;
+                vertex.ExtendedColor = Color.LightCoral;
+            }
             foreach (var edge in edges)
                 edge.Color = false;
         }
@@ -392,6 +395,26 @@ namespace Graph
             vertices.Remove(name);
             vertex.Name = name;
             vertices.Add(name, vertex);
+        }
+
+        /// <summary>
+        /// Transpose the graph
+        /// </summary>
+        /// <returns>The graph transposed</returns>
+        public Graph Transpose()
+        {
+            var graph = new Graph(Name);
+            foreach (var edge in edges)
+            {
+                var a = graph.GetOrCreate(edge.From.Name);
+                a.X = edge.From.X;
+                a.Y = edge.From.Y;
+                var b = graph.GetOrCreate(edge.To.Name);
+                b.X = edge.To.X;
+                b.Y = edge.To.Y;
+                graph.AddEdge(b, a, edge.Weight, edge.Bidirectional);
+            }
+            return graph;
         }
     }
 }
